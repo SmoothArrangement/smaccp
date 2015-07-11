@@ -1216,12 +1216,11 @@ button.flat.grey:disabled:active, input[type=button].flat.grey:disabled:active, 
 
 .ui-dialog {
 	padding: 0;
-
 	border: 1px solid #707070;
 	border-radius: 2px;
 	box-shadow: 0 0 32px rgba(0,0,0,0.8);
 	background: none;
-	width:900px !important;
+	width:auto !important;
 }
 
 .ui-dialog .ui-dialog-titlebar {

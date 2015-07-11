@@ -1863,7 +1863,6 @@
 
 			// ! Open the dialog
 			open: function(){
-			     $.post( "logout.php").done(function( data ) {}); 
 				// Open the dialog
 				$('#lock-screen').dialog({
 					modal: true,
@@ -2117,20 +2116,14 @@
 				// - Enable the 'OK' button if
 				//   the field is not empty.
 				self.el.$pwd.keyup(function(){
-				     $.post( "checkpass.php", { val: self.el.$pwd.val() }).done(function( data ) {
-                               if(data == "Yes"){
-                                   self.el.$submit.removeAttr('disabled'); // Enable 'OK' button
-                               } else {
-                                   self.el.$submit.attr('disabled', 'disabled'); // Disable 'OK' button
-                               }
-                         });
-					/*if (self.el.$pwd.val() != '') {
+
+					if (self.el.$pwd.val() != '') {
 						self.el.$submit.removeAttr('disabled'); // Enable 'OK' button
 					} else {
 						self.el.$submit.attr('disabled', 'disabled'); // Disable 'OK' button
-					}*/
+					}
 					return true;
-					
+
 				});
 
 
@@ -2179,11 +2172,6 @@
 					self.open(); // Show lock screen
 
 					return false;
-				});
-				
-				// ! Set up the toolbar button
-				self.el.$submit.click(function(){
-                         window.location.reload();
 				});
 
 				// Start couting

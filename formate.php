@@ -1,4 +1,11 @@
-﻿<!doctype html>
+<?php
+     include('include/connection.php');
+     include("include/language.php");
+     if((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")){
+          header("location:index.php");
+     }
+?>
+<!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
 <!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
@@ -30,12 +37,6 @@
     <link rel="shortcut icon" href="favicon.ico" />
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
     <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
-
-
-
-
-
-
 
     <!-- The Styles -->
     <!-- ---------- -->
@@ -153,7 +154,11 @@
     <!-- Your custom JS goes here -->
     <script src="js/app.js"></script>
     <!-- end scripts -->
-
+    <style>
+          .ui-dialog {
+              width: 505px !important;
+          }
+     </style>
 </head>
 
 <body>
@@ -617,10 +622,10 @@
              <div class="bottom sticky">
                 <div class="divider"></div>
                 <div class="buttons">
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neuer Kunde</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neue Rechnung</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Angebot</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Ticket</a>
+                    <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
+                    <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
+                                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
+                                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
                 </div>
                 <div class="divider"></div>				
                 <div class="progress">
@@ -657,38 +662,28 @@
 									<th>Gruppe</th>
 									<th>Prefix</th>
 									<th>Suffix</th>
-									<th>Nächste Nnummer</th>
+									<!-- <th>Nächste Nnummer</th> -->
 									<th>Speichern</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr>
-									<td>Kundennummernkreis</td>
-									<td contenteditable>SMA-K4980-</td>
-									<td contenteditable></td>
-									<td contenteditable>3</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td>Angebotsnummernkreis</td>
-									<td contenteditable>SMA-A4980-</td>
-									<td contenteditable></td>
-									<td contenteditable>6</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td>Rechnungsnummernkreis</td>
-									<td contenteditable>SMA-R4980-</td>
-									<td contenteditable></td>
-									<td contenteditable>9</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-									</td>
-								</tr>								
+                                        <?php
+                                             $sql = "SELECT * FROM number_range";
+                                             $number_range = mysql_query($sql);
+                                             while($row = mysql_fetch_assoc($number_range)){
+                                        ?>
+                                                  <tr data_id="<?=$row['iId']?>">
+                                                       <td><?=$row['vGroup']?></td>
+                                                       <td contenteditable class="prefix"><?=$row['vPrefix']?></td>
+                                                       <td contenteditable class="sufix"><?=$row['vSufix']?></td>
+                                                       <!-- <td contenteditable class="nextnumber"><?=$row['vNextNumber']?></td> -->
+                                                       <td class="center">
+                                                            <a href="#" class="button small grey tooltip save_nr" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                       </td>
+                                                  </tr>
+                                        <?php
+                                             }
+                                        ?>
 							</tbody>
 						</table>
 						
@@ -700,8 +695,7 @@
 				<div class="box">
 				
 					<div class="header">
-						<h2><a href="#" class="button small grey tooltip" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Anrede</h2>
-
+						<h2><a href="#" class="button small grey tooltip new_solution" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Anrede</h2>
 					</div>
 					
 					<div class="content">
@@ -718,21 +712,22 @@
 									<th>Aktionen</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td contenteditable>Herr</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>Frau</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>								
+							<tbody id="solution_table">
+                                        <?php
+                                             $sql = "SELECT * FROM salutation";
+                                             $salutation = mysql_query($sql);
+                                             while($row = mysql_fetch_assoc($salutation)){
+                                        ?>
+                                                  <tr data_id="<?=$row['iId']?>">
+                                                       <td contenteditable class="text_solu"><?=$row['vSalutation']?></td>
+                                                       <td class="center">
+                                                            <a href="#" class="button small grey tooltip save_solution" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                            <a href="#" class="button small grey tooltip delete_solution" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                                       </td>
+                                                  </tr>
+                                        <?php
+                                             }
+                                        ?>								
 							</tbody>
 						</table>
 						
@@ -744,7 +739,7 @@
 				<div class="box">
 				
 					<div class="header">
-						<h2><a href="#" class="button small grey tooltip" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Steuersätze</h2>
+						<h2><a href="#" class="button small grey tooltip new_tax" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Steuersätze</h2>
 
 					</div>
 					
@@ -762,21 +757,22 @@
 									<th>Aktionen</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td contenteditable>7</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>19</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>								
+							<tbody id="tax_table">
+                                        <?php
+                                             $sql = "SELECT * FROM tax_rate";
+                                             $tax_rate = mysql_query($sql);
+                                             while($row = mysql_fetch_assoc($tax_rate)){
+                                        ?>
+                                                  <tr data_id="<?=$row['iId']?>">
+                                                       <td contenteditable class="text_tax"><?=$row['vVat']?></td>
+                                                       <td class="center">
+                                                            <a href="#" class="button small grey tooltip save_tax" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                            <a href="#" class="button small grey tooltip delete_tax" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                                       </td>
+                                                  </tr>
+                                        <?php
+                                             }
+                                        ?>
 							</tbody>
 						</table>
 						
@@ -788,7 +784,7 @@
 				<div class="box">
 				
 					<div class="header">
-						<h2><a href="#" class="button small grey tooltip" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Länder</h2>
+						<h2><a href="#" class="button small grey tooltip new_country" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Länder</h2>
 
 					</div>
 					
@@ -806,35 +802,22 @@
 									<th>Aktionen</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td contenteditable>Deutschland</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>Österreich</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>Schweiz</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>	
-								<tr>
-									<td contenteditable>Indien</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>									
+							<tbody  id="country_table">
+                                        <?php
+                                             $sql = "SELECT * FROM country_mst";
+                                             $country_mst = mysql_query($sql);
+                                             while($row = mysql_fetch_assoc($country_mst)){
+                                        ?>
+                                                  <tr data_id="<?=$row['iId']?>">
+                                                       <td contenteditable class="text_country"><?=$row['vCountry']?></td>
+                                                       <td class="center">
+                                                            <a href="#" class="button small grey tooltip save_country" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                            <a href="#" class="button small grey tooltip delete_country" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                                       </td>
+                                                  </tr>
+                                        <?php
+                                             }
+                                        ?>									
 							</tbody>
 						</table>
 						
@@ -847,7 +830,7 @@
 				<div class="box">
 				
 					<div class="header">
-						<h2><a href="#" class="button small grey tooltip" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Zahlungsarten</h2>
+						<h2><a href="#" class="button small grey tooltip new_payment" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Zahlungsarten</h2>
 
 					</div>
 					
@@ -865,35 +848,22 @@
 									<th>Aktionen</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td contenteditable>Überweisung</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>Bar</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>PayPal</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>SEPA-Madnat</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>									
+							<tbody id="payment_table">
+                                        <?php
+                                             $sql = "SELECT * FROM payment_mst";
+                                             $payment_mst = mysql_query($sql);
+                                             while($row = mysql_fetch_assoc($payment_mst)){
+                                        ?>
+                                                  <tr data_id="<?=$row['iId']?>">
+                                                       <td contenteditable class="text_payment"><?=$row['vPayment']?></td>
+                                                       <td class="center">
+                                                            <a href="#" class="button small grey tooltip save_payment" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                            <a href="#" class="button small grey tooltip delete_payment" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                                       </td>
+                                                  </tr>
+                                        <?php
+                                             }
+                                        ?>									
 							</tbody>
 						</table>
 						
@@ -905,7 +875,7 @@
 				<div class="box">
 				
 					<div class="header">
-						<h2><a href="#" class="button small grey tooltip" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Zahlungsbedingungen</h2>
+						<h2><a href="#" class="button small grey tooltip new_payment_term" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Zahlungsbedingungen</h2>
 
 					</div>
 					
@@ -925,31 +895,23 @@
 									<th>Aktionen</th>
 								</tr>
 							</thead>
-							<tbody>
-								<tr>
-									<td contenteditable>5 Werktage ohne Abzug</td>
-									<td contenteditable>5</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>Barkasse</td>
-									<td contenteditable>0</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>
-								<tr>
-									<td contenteditable>Lastschrifteinzug</td>
-									<td contenteditable>0</td>
-									<td class="center">
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-										<a href="#" class="button small grey tooltip" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-									</td>
-								</tr>								
+							<tbody id="payment_term_table">
+                                        <?php
+                                             $sql = "SELECT * FROM payment_term_mst";
+                                             $payment_term_mst = mysql_query($sql);
+                                             while($row = mysql_fetch_assoc($payment_term_mst)){
+                                        ?>
+                                                  <tr data_id="<?=$row['iId']?>">
+                                                       <td contenteditable class="text_payment_term"><?=$row['vName']?></td>
+                                                       <td contenteditable class="text_payment_term_day"><?=$row['vTerm']?></td>
+                                                       <td class="center">
+                                                            <a href="#" class="button small grey tooltip save_payment_term" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                            <a href="#" class="button small grey tooltip delete_payment_term" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                                       </td>
+                                                  </tr>
+                                        <?php
+                                             }
+                                        ?>								
 							</tbody>
 						</table>
 						
@@ -1013,7 +975,267 @@
 
     <!-- Spawn $$.loaded -->
     <script>
-        $$.loaded();
+          $$.loaded();
+          <?php
+               if(isset($_SESSION['id']) && $_SESSION['id'] != "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == ""){
+          ?>
+                      $$.ready(function() {
+                           setTimeout(function(){
+                                $('#btn-lock').trigger('click');
+                           },2000);
+                      });
+          <?php
+               }
+          ?>
+          $$.ready(function() {
+               $('.save_nr').live('click', function(e){
+                    e.preventDefault();
+                    var id = $(this).parent('td').parent('tr').attr('data_id');
+                    var prefix = $(this).parent('td').parent('tr').children('.prefix').html();
+                    var sufix = $(this).parent('td').parent('tr').children('.sufix').html();
+                    var nextnumber = $(this).parent('td').parent('tr').children('.nextnumber').html();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'save_nr', id: id, prefix: prefix, sufix: sufix, nextnumber: nextnumber }
+                    }).done(function() {});
+               });
+               $('.new_solution').live('click', function(e){
+                    e.preventDefault();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'new_solution' }
+                    }).done(function( id ) {
+                         var html = '<tr data_id="'+id+'">'+
+                                        '<td contenteditable class="text_solu"></td>'+
+                                        '<td class="center">'+
+                                             '<a href="#" class="button small grey tooltip save_solution" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
+                                             '<a href="#" class="button small grey tooltip delete_solution" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
+                                        '</td>'+
+                                   '</tr>';
+                           $('#solution_table').append(html);
+                    });
+               });
+               //Solution
+               $('.save_solution').live('click', function(e){
+                    e.preventDefault();
+                    var id = $(this).parent('td').parent('tr').attr('data_id');
+                    var text = $(this).parent('td').parent('tr').children('.text_solu').html();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'save_solution', id: id, text: text }
+                    }).done(function( msg ) {});
+               });
+               $('.delete_solution').live('click', function(e){
+                    e.preventDefault();
+                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
+                         var id = $(this).parent('td').parent('tr').attr('data_id');
+                         var remove = $(this);
+                         $.ajax({
+                              method: "POST",
+                              url: "ajax_save.php",
+                              data: { type: 'delete_solution', id: id }
+                         }).done(function( msg ) {
+                              if(msg === '1'){
+                                   $(remove).parent('td').parent('tr').remove();
+                              } else {
+                                   alert(msg);
+                              }
+                         });
+                    }
+               });
+               //Tax
+               $('.new_tax').live('click', function(e){
+                    e.preventDefault();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'new_tax' }
+                    }).done(function( id ) {
+                         var html = '<tr data_id="'+id+'">'+
+                                        '<td contenteditable class="text_tax"></td>'+
+                                        '<td class="center">'+
+                                             '<a href="#" class="button small grey tooltip save_tax" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
+                                             '<a href="#" class="button small grey tooltip delete_tax" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
+                                        '</td>'+
+                                   '</tr>';
+                           $('#tax_table').append(html);
+                    });
+               });
+               $('.save_tax').live('click', function(e){
+                    e.preventDefault();
+                    var id = $(this).parent('td').parent('tr').attr('data_id');
+                    var text = $(this).parent('td').parent('tr').children('.text_tax').html();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'save_tax', id: id, text: text }
+                    }).done(function( msg ) {});
+               });
+               $('.delete_tax').live('click', function(e){
+                    e.preventDefault();
+                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
+                         var id = $(this).parent('td').parent('tr').attr('data_id');
+                         var remove = $(this);
+                         $.ajax({
+                              method: "POST",
+                              url: "ajax_save.php",
+                              data: { type: 'delete_tax', id: id }
+                         }).done(function( msg ) {
+                              if(msg === '1'){
+                                   $(remove).parent('td').parent('tr').remove();
+                              } else {
+                                   alert(msg);
+                              }
+                         });
+                    }
+               });
+               
+               //Country
+               $('.new_country').live('click', function(e){
+                    e.preventDefault();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'new_country' }
+                    }).done(function( id ) {
+                         var html = '<tr data_id="'+id+'">'+
+                                        '<td contenteditable class="text_country"></td>'+
+                                        '<td class="center">'+
+                                             '<a href="#" class="button small grey tooltip save_country" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
+                                             '<a href="#" class="button small grey tooltip delete_country" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
+                                        '</td>'+
+                                   '</tr>';
+                           $('#country_table').append(html);
+                    });
+               });
+               $('.save_country').live('click', function(e){
+                    e.preventDefault();
+                    var id = $(this).parent('td').parent('tr').attr('data_id');
+                    var text = $(this).parent('td').parent('tr').children('.text_country').html();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'save_country', id: id, text: text }
+                    }).done(function( msg ) {});
+               });
+               $('.delete_country').live('click', function(e){
+                    e.preventDefault();
+                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
+                         var id = $(this).parent('td').parent('tr').attr('data_id');
+                         var remove = $(this);
+                         $.ajax({
+                              method: "POST",
+                              url: "ajax_save.php",
+                              data: { type: 'delete_country', id: id }
+                         }).done(function( msg ) {
+                              if(msg === '1'){
+                                   $(remove).parent('td').parent('tr').remove();
+                              } else {
+                                   alert(msg);
+                              }
+                         });
+                    }
+               });
+               
+               //Payment
+               $('.new_payment').live('click', function(e){
+                    e.preventDefault();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'new_payment' }
+                    }).done(function( id ) {
+                         var html = '<tr data_id="'+id+'">'+
+                                        '<td contenteditable class="text_payment"></td>'+
+                                        '<td class="center">'+
+                                             '<a href="#" class="button small grey tooltip save_payment" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
+                                             '<a href="#" class="button small grey tooltip delete_payment" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
+                                        '</td>'+
+                                   '</tr>';
+                           $('#payment_table').append(html);
+                    });
+               });
+               $('.save_payment').live('click', function(e){
+                    e.preventDefault();
+                    var id = $(this).parent('td').parent('tr').attr('data_id');
+                    var text = $(this).parent('td').parent('tr').children('.text_payment').html();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'save_payment', id: id, text: text }
+                    }).done(function( msg ) {});
+               });
+               $('.delete_payment').live('click', function(e){
+                    e.preventDefault();
+                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
+                         var id = $(this).parent('td').parent('tr').attr('data_id');
+                         var remove = $(this);
+                         $.ajax({
+                              method: "POST",
+                              url: "ajax_save.php",
+                              data: { type: 'delete_payment', id: id }
+                         }).done(function( msg ) {
+                              if(msg === '1'){
+                                   $(remove).parent('td').parent('tr').remove();
+                              } else {
+                                   alert(msg);
+                              }
+                         });
+                    }
+               });
+               
+               //Payment Term
+               $('.new_payment_term').live('click', function(e){
+                    e.preventDefault();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'new_payment_term' }
+                    }).done(function( id ) {
+                         var html = '<tr data_id="'+id+'">'+
+                                        '<td contenteditable class="text_payment_term"></td>'+
+                                        '<td contenteditable class="text_payment_term_day"></td>'+
+                                        '<td class="center">'+
+                                             '<a href="#" class="button small grey tooltip save_payment_term" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
+                                             '<a href="#" class="button small grey tooltip delete_payment_term" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
+                                        '</td>'+
+                                   '</tr>';
+                           $('#payment_term_table').append(html);
+                    });
+               });
+               $('.save_payment_term').live('click', function(e){
+                    e.preventDefault();
+                    var id = $(this).parent('td').parent('tr').attr('data_id');
+                    var text = $(this).parent('td').parent('tr').children('.text_payment_term').html();
+                    var day = $(this).parent('td').parent('tr').children('.text_payment_term_day').html();
+                    $.ajax({
+                         method: "POST",
+                         url: "ajax_save.php",
+                         data: { type: 'save_payment_term', id: id, text: text, day: day }
+                    }).done(function( msg ) {});
+               });
+               $('.delete_payment_term').live('click', function(e){
+                    e.preventDefault();
+                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
+                         var id = $(this).parent('td').parent('tr').attr('data_id');
+                         var remove = $(this);
+                         $.ajax({
+                              method: "POST",
+                              url: "ajax_save.php",
+                              data: { type: 'delete_payment_term', id: id }
+                         }).done(function( msg ) {
+                              if(msg === '1'){
+                                   $(remove).parent('td').parent('tr').remove();
+                              } else {
+                                   alert(msg);
+                              }
+                         });
+                    }
+               });
+          });
     </script>
 
     <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.

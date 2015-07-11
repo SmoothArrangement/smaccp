@@ -1,4 +1,13 @@
-﻿<!doctype html>
+<?php
+     include('include/connection.php');
+     include("include/language.php");
+     if((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")){
+          header("location:index.php");
+     }
+     $sql = "SELECT * FROM user_mst WHERE vUserType != '1' ORDER BY iId DESC";
+     $users = mysql_query($sql);
+?>
+<!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
 <!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
@@ -154,7 +163,6 @@
     <script src="js/app.js"></script>
 
     <!-- end scripts -->
-
 </head>
 
 <body>
@@ -618,10 +626,10 @@
              <div class="bottom sticky">
                 <div class="divider"></div>
                 <div class="buttons">
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neuer Kunde</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neue Rechnung</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Angebot</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Ticket</a>
+                    <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
+                    <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
+                                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
+                                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
                 </div>
                 <div class="divider"></div>				
                 <div class="progress">
@@ -657,207 +665,28 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr>
-									<td class="center">SMA-K4980-1</td>
-									<td class="center">Philipp</td>
-									<td class="center">Dallmann</td>
-									<td class="center">Smooth Arrangement</td>
-									<td class="center">
-									<a title="Eintrag löschen" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/cross-script.png" alt="" height=16 width=16></a>
-									<a title="Eintrag bearbeiten" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="" height=16 width=16></a>
-									<a id="dialog_normal_btn" href="javascript:void(0);"><span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="" height=16 width=16></a>
-									</td>
-								</tr>
-								<tr>
-									<td class="center">SMA-K4980-2</td>
-									<td class="center">Yash</td>
-									<td class="center">Amipara</td>
-									<td class="center">Atologist Infotech</td>
-									<td class="center">
-									<a title="Eintrag löschen" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/cross-script.png" alt="" height=16 width=16></a>
-									<a title="Eintrag bearbeiten" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="" height=16 width=16></a>
-									<a title="Eintrag ansehen" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="" height=16 width=16></a>
-									</td>
-								</tr>								
+                                        <?php
+                                             while ($row = mysql_fetch_array($users)) {
+                                        ?>
+                                                  <tr data-id="<?=$row['iId']?>">
+                                                       <td class="center"><?=$row['vCustomerNumber']?></td>
+                                                       <td class="center"><?=$row['vFname']?></td>
+                                                       <td class="center"><?=$row['vLname']?></td>
+                                                       <td class="center"><?=$row['vCompany']?></td>
+                                                       <td class="center">
+                                                            <a title="Eintrag löschen" class="delete_customer" href="javascript:void(0);"><span class="icon"><img src="img/icons/packs/fugue/16x16/cross-script.png" alt="" height=16 width=16></a>
+                                                                      <a title="Eintrag bearbeiten" class="edit_customer" href="kundendaten.php?id=<?php echo base64_encode($row['iId']);?>"><span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="" height=16 width=16></a>
+                                                            <a class="dialog_normal_btn" href="javascript:void(0);"><span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="" height=16 width=16></a>
+                                                       </td>
+                                                  </tr>
+                                        <?php
+                                             }
+                                        ?>								
 							</tbody>
 						</table>
-							<div style="display: none;" id="dialog_normal" title="Kunden Daten">
-			<div class="grid_12 profile">
-			
-				<div class="header">
-				
-					<div class="title">
-						<h2>Philipp Dallmann</h2>
-						<h3>SMA-K4980-1</h3>
-					</div>
-					<div class="avatar">
-						<img src="img/elements/profile/avatar.png" />
-						<a href="javascript:void(0);">Ändern</a>
-					</div>
-					
-					<ul class="info">
-					<li>&nbsp;</li>
-					
-					</ul><!-- End of ul.info -->
-				</div><!-- End of .header -->
-				
-				<div class="details grid_12">
-					<h2>Kunden Daten</h2>
-					<a href="javascript:$$.settings();"><span class="icon icon-pencil"></span>Bearbeiten</a>
-					<section>
-<table style="width:100%;" border="0">
-  <tr>
-    <td>
-	  <table style="width:230px;">
-							<tr>
-								<th style="text-align: right">Anrede:</th>
-								<td>Herr</td>
-							</tr>
-							<tr>
-								<th style="text-align: right">Vorname:</th><td>Philipp</td>
-							</tr>
-							<tr>
-							  <th style="text-align: right">Name:</th>
-							  <td>Dallmann</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-  </tr>
-							<tr>
-							  <th style="text-align: right">Firma:</th>
-							  <td>Smooth Arrangement</td>
-	    </tr>
-							<tr>
-							  <th style="text-align: right">UStId:</th>
-							  <td>n.a.</td>
-						  </tr>
-							<tr>
-								<th style="text-align: right">&nbsp;</th>
-								<td>&nbsp;</td>
-							</tr>
-							<tr>
-							  <th style="text-align: right">Sepa:</th>
-							  <td>Ja</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">IBAN:</th>
-							  <td>DE12 48050101 0000 12345</td>
-	    </tr>
-							<tr>
-							  <th style="text-align: right">BIC: </th>
-							  <td>WELADEV0123</td>
-						  </tr>
-						</table>    
-    </td>
-    <td style="border-right:1px lightgrey dotted;">&nbsp;</td>
-    <td>
-						<table style="width:230px;">
-							<tr>
-								<th style="text-align: right">Straße:</th>
-								<td>Zum Jägerplatz 93</td>
-							</tr>
-							<tr>
-								<th style="text-align: right">PLZ / Ort: </th><td>32549 Bad Oeynhausen</td>
-							</tr>
-							<tr>
-							  <th style="text-align: right">Land:</th>
-							  <td>Deutschland</td>
-  </tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-							<tr>
-								<th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-							</tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-						</table>    
-    </td>
-    <td style="border-right:1px lightgrey dotted;">&nbsp;</td>
-    <td>
-						<table style="width:230px;">
-							<tr>
-								<th style="text-align: right">Telefon:</th>
-								<td>+49 (0) 5734 - 5199320</td>
-							</tr>
-							<tr>
-								<th style="text-align: right">Fax:</th><td>+49 (0) 5734 - 5199319</td>
-							</tr>
-							<tr>
-							  <th style="text-align: right">E-Mail:</th>
-							  <td>info@smootharrangement.de</td>
-  </tr>
-							<tr>
-							  <th style="text-align: right">Internet:</th>
-							  <td>http://smootharrangement.de</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-							<tr>
-								<th style="text-align: right">&nbsp;</th>
-								<td>&nbsp;</td>
-							</tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">&nbsp;</th>
-							  <td>&nbsp;</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right">Status:</th>
-							  <td>Aktiv</td>
-						  </tr>
-							<tr>
-							  <th style="text-align: right; vertical-align: top;">Bemerkungen:</th>
-							  <td>Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla Bla </td>
-						  </tr>
-						</table>    
-    </td>
-  </tr>
-</table>
-
-
-
-					</section>
-				</div><!-- End of .details -->
-			
-				<!-- Example Profile Dialog -->							
-
-				
-			</div>								
-								<div class="actions">
-									<div class="left">
-									</div>
-									<div class="right">
-										<button>OK</button>
-									</div>
-								</div>
-							</div>						
+                              <div style="display: none;" id="dialog_normal" title="Kunden Daten">
+                                   
+                              </div>						
 					</div><!-- End of .content -->
 					
 				</div><!-- End of .box -->
@@ -899,19 +728,52 @@
 					$(this).parents('.ui-dialog-content').dialog('close');
 				});
 
-				$( "#dialog_normal_btn" ).click(function() {
-					$( "#dialog_normal" ).dialog( "open" );
+				$( ".dialog_normal_btn" ).live('click', function(e){
+                         e.preventDefault();
+                         var id = $(this).parent('td').parent('tr').attr('data-id');
+                         $.ajax({
+                              method: "POST",
+                              url: "ajax_save.php",
+                              data: { type: 'dialog_normal_btn', id: id }
+                         }).done(function( data ) {
+                               if(data !== 'No'){
+                                   $('#dialog_normal').html(data);
+                                   $("#dialog_normal").dialog( "open" );
+                               } else {
+                                    alert('Try Again.');
+                               }
+                         });
 					return false;
 				});
+                    
+                    $('.delete_customer').live('click', function(e){
+                         e.preventDefault();
+                         if(confirm("Möchten Sie den kunden wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
+                              var id = $(this).parent('td').parent('tr').attr('data-id');
+                              var remove = $(this);
+                              $.ajax({
+                                   method: "POST",
+                                   url: "ajax_save.php",
+                                   data: { type: 'delete_customer', id: id }
+                              }).done(function( msg ) {
+                                   if(msg === '1'){
+                                        $(remove).parent('td').parent('tr').remove();
+                                   } else {
+                                        alert(msg);
+                                   }
+                              });
+                         }
+                    });
+                    
+                    $( ".close-dialog" ).live('click', function(e){
+                         $('.ui-dialog-titlebar-close').trigger('click');
+                    });
+                    
+                    $( ".ui-dialog-titlebar-close" ).live('click', function(e){
+                         $('#dialog_normal').html('');
+                    });
 			});
-			</script>
-			
-			
-			
-			
-			
-	
-			
+			</script>		
         </section><!-- End of #content -->
 
     </div><!-- End of #main -->
@@ -932,6 +794,17 @@
     <!-- Spawn $$.loaded -->
     <script>
         $$.loaded();
+        <?php
+               if(isset($_SESSION['id']) && $_SESSION['id'] != "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == ""){
+          ?>
+                      $$.ready(function() {
+                           setTimeout(function(){
+                                $('#btn-lock').trigger('click');
+                           },2000);
+                      });
+          <?php
+               }
+          ?>
     </script>
 
     <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.

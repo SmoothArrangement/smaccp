@@ -618,10 +618,10 @@
              <div class="bottom sticky">
                 <div class="divider"></div>
                 <div class="buttons">
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neuer Kunde</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neue Rechnung</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Angebot</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Ticket</a>
+                    <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
+                    <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
+                                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
+                                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
                 </div>
                 <div class="divider"></div>				
                 <div class="progress">

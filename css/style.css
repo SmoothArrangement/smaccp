@@ -287,3 +287,17 @@ td { vertical-align: top; }
   h2, h3 { page-break-after: avoid; }
 }
 
+div#ui-accordion-1-panel-0 {
+  height: 350px !important;
+  overflow: hidden;
+}
+
+div#ui-accordion-1-panel-1 {
+  height: 350px !important;
+  overflow: hidden;
+}
+
+div#ui-accordion-1-panel-2 {
+  height: 350px !important;
+  overflow: hidden;
+}

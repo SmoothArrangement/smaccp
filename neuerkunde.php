@@ -1,4 +1,99 @@
-﻿<!doctype html>
+<?php
+     include('include/connection.php');
+     include("include/language.php");
+     if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")) {
+          header("location:index.php");
+     }
+     function rand_string( $length ) {
+          $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          return substr(str_shuffle($chars),0,$length);
+     }
+     if (isset($_REQUEST['send'])) {
+          $email = mysql_real_escape_string($_REQUEST['email']);
+          
+          $checkemail = "SELECT * FROM user_mst WHERE vEmail='".$email."'";
+          $emailresult = mysql_query($checkemail);
+          if(mysql_num_rows($emailresult) == 0){
+               $solution = mysql_real_escape_string($_REQUEST['solution']);
+               $fname = mysql_real_escape_string($_REQUEST['fname']);
+               $lname = mysql_real_escape_string($_REQUEST['name']);
+               //$customer_number = mysql_real_escape_string($_REQUEST['customer_number']);
+               
+               $sql = "SELECT * FROM number_range WHERE iId = '1'";
+               $number_range = mysql_query($sql);
+               $row = mysql_fetch_assoc($number_range);
+               $prefix = $row['vPrefix'];
+               $sufix = $row['vSufix'];
+
+               $sql = "SELECT * FROM user_mst ORDER BY iId DESC LIMIT 1";
+               $user = mysql_query($sql);
+               $row = mysql_fetch_assoc($user);
+               $nextid = $row['iId'] + 1;
+               $customer_number = $prefix.$nextid.$sufix;
+               
+               $company = mysql_real_escape_string($_REQUEST['company']);
+               $ustid = mysql_real_escape_string($_REQUEST['ustid']);
+               $road = mysql_real_escape_string($_REQUEST['road']);
+               $h_number = mysql_real_escape_string($_REQUEST['h_number']);
+               $zip = mysql_real_escape_string($_REQUEST['zip']);
+               $place = mysql_real_escape_string($_REQUEST['place']);
+               $country = mysql_real_escape_string($_REQUEST['country']);
+               $phone = mysql_real_escape_string($_REQUEST['phone']);
+               $fax = mysql_real_escape_string($_REQUEST['fax']);
+               $internet = mysql_real_escape_string($_REQUEST['internet']);
+               $acholder = mysql_real_escape_string($_REQUEST['acholder']);
+               $sepa = mysql_real_escape_string($_REQUEST['sepa']);
+               $sepadate = mysql_real_escape_string($_REQUEST['sepadate']);
+               $sepadate = explode("/", $sepadate);
+               if (isset($sepadate[2])) {
+                    $sepadate = $sepadate[2] . "-" . $sepadate[0] . "-" . $sepadate[1] . " 00:00:00";
+               } else {
+                    $sepadate = "0000-00-00 00:00:00";
+               }
+               $iban = mysql_real_escape_string($_REQUEST['iban']);
+               $bic = mysql_real_escape_string($_REQUEST['bic']);
+               $status = mysql_real_escape_string($_REQUEST['status']);
+               $other_info = mysql_real_escape_string($_REQUEST['other_info']);
+               $password = rand_string(6);
+
+               $ins_query = "INSERT INTO `user_mst` (`iId`,`vFname`, `vLname`, `vEmail`, `vPassword`, `vUserType`, `vPosition`, `vSolution`, `vCustomerNumber`, `vCompany`, `vUstid`, `vRoad`, `vHouseNumber`, `vZip`, `vPlace`, `vCountry`, `vPhone`, `vFax`, `vInternet`, `vAccountHolder`, `vSepa`, `dSepaDate`, `vIBan`, `vBic`, `tDescription`, `vStatus`) VALUES ('".$nextid."', '" . $fname . "', '" . $lname . "', '" . $email . "', '" . base64_encode($password) . "', '2', 'Customer', '" . $solution . "', '" . $customer_number . "', '" . $company . "', '" . $ustid . "', '" . $road . "', '" . $h_number . "', '" . $zip . "', '" . $place . "', '" . $country . "', '" . $phone . "', '" . $fax . "', '" . $internet . "', '" . $acholder . "', '" . $sepa . "', '" . $sepadate . "', '" . $iban . "', '" . $bic . "', '" . $other_info . "', '" . $status . "');";
+               mysql_query($ins_query);
+               
+               $seltamplate = "SELECT * FROM email_template WHERE iId='1'";
+               $temresult = mysql_query($seltamplate);
+               $template = mysql_fetch_assoc($temresult);
+               
+               $msg = $template['tMessage'];
+               $msg = str_replace("{benutzername}",$fname." ".$lname,$msg);
+               $msg = str_replace("{ticketlogin}",'<a href="http://ccp.smootharrangement.de/">Click here to login.</a>',$msg);
+               $msg = str_replace("{benutzeremail}",$email,$msg);      
+               $msg = str_replace("{passwort}",$password,$msg);
+               $html = '<html lang="en" dir="ltr" style="border: 0 none;font: inherit;margin: 0;padding: 0;vertical-align: baseline;">
+                             <head>
+                                  <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+                                  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+                                  <meta content="width=device-width" name="viewport">
+                                  
+                             </head>
+                             <body style="background: #FFFFFF;color: #333333;font-family: Helvetica,Arial,sans-serif;font-size: 14px;line-height: 1.5em;margin: 0;padding: 40px 0;">
+                                    '.$msg.'    
+                             </body>
+                        </html>';
+                $headers  = 'MIME-Version: 1.0' . "\r\n";
+                $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+                // Additional headers
+                
+                $headers .= 'From: CCP <'.$template['vSender'].'>' . "\r\n";
+                $sub = $template['vSubject'];
+                mail($email, $sub, $html, $headers);
+                
+               echo "<script>window.location.href='kunden.php';</script>";
+          } else {
+               $emsg = "This e-mail address is already exist.";
+          }
+     }
+?>
+<!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
 <!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
@@ -154,7 +249,11 @@
     <script src="js/app.js"></script>
 
     <!-- end scripts -->
-
+    <style>
+          .ui-dialog {
+              width: 505px !important;
+          }
+      </style>
 </head>
 
 <body>
@@ -289,7 +388,7 @@
 
     <!-- Add Client Example Dialog -->
     <div style="display: none;" id="dialog_add_client" title="Add Client Example Dialog">
-        <form action="" class="full validate">
+        <form action="" method="post" class="full validate">
             <div class="row">
                 <label for="d2_username">
                     <strong>Username</strong>
@@ -618,10 +717,10 @@
              <div class="bottom sticky">
                 <div class="divider"></div>
                 <div class="buttons">
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neuer Kunde</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neue Rechnung</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Angebot</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Ticket</a>
+                    <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
+                    <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
+                                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
+                                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
                 </div>
                 <div class="divider"></div>				
                 <div class="progress">
@@ -637,7 +736,7 @@
         <section id="content" class="container_12 clearfix" data-sort=true>
 		
 			<div class="grid_12">
-				<form class="box grid">
+                    <form class="box grid" action="" method="POST">
 				
 					<div class="header">
 						<h2>Neuer Kunde</h2>
@@ -649,9 +748,16 @@
 						<h2 class="_100">Stamm Daten</h2>
 							<p class="_25">
 							<label>Anrede</label>
-							<select style="height:150px;" data-placeholder="Anrede" class="search" >
-								<option value="Herr">Herr</option> 
-								<option value="Frau">Frau</option> 
+							<select style="height:150px;" data-placeholder="Anrede" class="search" name="solution" >
+                                        <?php
+                                             $sql = "SELECT * FROM salutation where vSalutation != ''";
+                                             $salutation = mysql_query($sql);
+                                             while($row = mysql_fetch_assoc($salutation)){
+                                        ?>
+                                                  <option value="<?=$row['iId']?>"><?=$row['vSalutation']?></option>
+                                        <?php
+                                             }
+                                        ?>
 							</select>
 							</p>
 							<p class="_25">
@@ -664,50 +770,67 @@
 							</p>
 							<p class="_25">
 							<label>Kundennummer</label>
-							<input type="text" />
+                                   <?php
+                                        $sql = "SELECT * FROM number_range WHERE iId = '1'";
+                                        $number_range = mysql_query($sql);
+                                        $row = mysql_fetch_assoc($number_range);
+                                        $prefix = $row['vPrefix'];
+                                        $sufix = $row['vSufix'];
+                                        
+                                        $sql = "SELECT * FROM user_mst ORDER BY iId DESC LIMIT 1";
+                                        $user = mysql_query($sql);
+                                        $row = mysql_fetch_assoc($user);
+                                        $nextid = $row['iId'] + 1;
+                                   ?>
+                                   <input type="text" name="customer_number" readonly="true" value="<?=$prefix.$nextid.$sufix?>"/>
 							</p>							
 							<p style="height:0; margin:0;" class="_100"></p>						
 							<p class="_75">
 							<label>Firma</label>							
-								<input type="text"  />
+								<input type="text" name="company"  />
 							</p>
 							<p class="_25">
 							<label>UStId</label>							
-								<input type="text"  />
+								<input type="text" name="ustid"  />
 							</p>
 							<p class="_50">
 							<label>Vorname</label>							
-								<input type="text" />
+								<input type="text" name="fname" />
 							</p>
 							<p class="_50">
 							<label>Name</label>							
-								<input type="text"  />
+								<input type="text" name="name"  />
 							</p>
 						
 							<p class="_80">
 							<label>Straße</label>
-								<input type="text" />
+								<input type="text" name="road" />
 							</p>
 							<p class="_20">
 							<label>Hausnummer</label>
-								<input type="text" />
+								<input type="text" name="h_number" />
 							</p>
 
 						<p class="_20">
 							<label>PLZ</label>
-								<input type="text" />
+								<input type="text" name="zip" />
 							</p>
 								<p class="_30">
 							<label>Ort</label>
-								<input type="text" />
+								<input type="text" name="place" />
 							</p>
 								<p class="_50">
 							<label>Land</label>
-							<select style="height:150px;" data-placeholder="Land" class="search" >
-								<option value="Deutschland">Deutschland</option> 
-								<option value="Österreich">Österreich</option> 
-								<option value="Schweiz">Schweiz</option> 
-								<option value="Indien">Indien</option> 
+							<select style="height:150px;" data-placeholder="Land" class="search" name="country" >
+								<?php
+                                             $sql = "SELECT * FROM country_mst where vCountry != ''";
+                                             $country_mst = mysql_query($sql);
+                                             while($row = mysql_fetch_assoc($country_mst)){
+                                        ?>
+                                                  <option value="<?=$row['iId']?>"><?=$row['vCountry']?></option>
+                                        <?php
+                                             }
+                                        ?>
 							</select>
 							</p>							
 						</div>
@@ -715,19 +838,19 @@
 							<h2 class="_100">Kontakt Daten</h2>
 								<p class="_25">
 							<label>Telefon</label>
-								<input type="text" />
+								<input type="text" name="phone" />
 							</p>
 								<p class="_25">
 							<label>Fax</label>
-								<input type="text" />
+								<input type="text" name="fax" />
 							</p>	
 								<p class="_25">
 							<label>E-Mail</label>
-								<input type="text" />
+								<input type="email" name="email" />
 							</p>	
 								<p class="_25">
 							<label>Internet</label>
-								<input type="text" />
+								<input type="text" name="internet" />
 							</p>								
 							
 							</div>	
@@ -735,48 +858,40 @@
 							<h2 class="_100">Abrechnung</h2>
 								<p class="_50">
 							<label>Kontoinhaber</label>
-								<input type="text" />
+								<input type="text" name="acholder" />
 							</p>
 			
 			
 							<p class="_25">
 							<label>Sepa-Mandat</label>
-							<select style="height:150px;" data-placeholder="Land" class="search" >
+							<select style="height:150px;" data-placeholder="Land" class="search" name="sepa" >
 								<option value="Ja">Ja</option> 
 								<option value="Nein">Nein</option> 
 							</select>
 							</p>
 					<p class="_25">
 							<label>Mandats Datum</label>
-							<input type="date" />
+							<input type="date" name="sepadate" />
 							</p>							
 							<p style="height:0; margin:0;" class="_100"></p>
 							<p class="_50">
 							<label>IBAN</label>
-							<input type="text">
+							<input type="text" name="iban" >
 							</p>
 							<p class="_50">
 							<label>BIC</label>
-							<input type="text">
+							<input type="text" name="bic">
 							</p>							
 							</div>
 							<div class="row">
 							<h2 class="_100">Kundenzugang</h2>
-							<p class="_20">
-							<label>&nbsp;</label>
-<button href="javascript:void(0);" class="button grey block"><span class="icon icon-plus"></span>Neues Passwort</button>
-							</p>
-					<p class="_20">
-												<label>&nbsp;</label>
-<button href="javascript:void(0);" class="button grey block"><span class="icon icon-plus"></span>Zur Kundenansicht</button>
-							</p>
 					<p class="_20">
 												<label style="margin-bottom:13px;">Account Status</label>
-<select><option>Aktiv</option><option>Gesperrt</option></select>
+<select name="status"><option value="1">Aktiv</option><option value="0">Gesperrt</option></select>
 							</p>								
 								<p class="_40">
 							<label>Interne Bemerkungen</label>
-								<textarea style="margin-top:5px; width:97%;" ></textarea>
+								<textarea style="margin-top:5px; width:97%;" name="other_info"></textarea>
 							</p>					
 							</div>							
 					<div class="actions">
@@ -849,6 +964,17 @@
     <!-- Spawn $$.loaded -->
     <script>
         $$.loaded();
+          <?php
+               if(isset($_SESSION['id']) && $_SESSION['id'] != "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == ""){
+          ?>
+                    $$.ready(function() {
+                         setTimeout(function(){
+                              $('#btn-lock').trigger('click');
+                         },2000);
+                    });
+          <?php
+               }
+          ?>
     </script>
 
     <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.

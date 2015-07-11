@@ -1,3 +1,94 @@
+<?php
+     include("include/connection.php");
+     include ("include/language.php");
+     $emsg = "";
+     $smsg = "";
+     function rand_string( $length ) {
+          $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          return substr(str_shuffle($chars),0,$length);
+     }
+     if(isset($_REQUEST['forgote'])){
+          $password = rand_string(6);
+          $email = $_REQUEST['email'];
+          $checkemail = "SELECT * FROM user_mst WHERE vEmail='".$email."'";
+          $emailresult = mysql_query($checkemail);
+          if(mysql_num_rows($emailresult) == 0){
+               $emsg = "This e-mail address is unknown. Please join first.";   
+          } else {
+               $smsg = "Please check email and password.";
+               $erow = mysql_fetch_assoc($emailresult);
+               $password = base64_encode($password); 
+               $upQuery = "UPDATE user_mst SET vPassword='".$password."' WHERE iId='".$erow['iId']."'";
+               mysql_query($upQuery);
+               $email = $erow['vEmail'];
+               $fname = $erow['vFname'];
+               $lname = $erow['vLname'];
+               $password = base64_decode($password);
+               
+               $seltamplate = "SELECT * FROM email_template WHERE iId='5'";
+               $temresult = mysql_query($seltamplate);
+               $template = mysql_fetch_assoc($temresult);
+               $msg = $template['tMessage'];
+               $msg = str_replace("{benutzername}",$fname." ".$lname,$msg);
+               $msg = str_replace("{ticketlogin}",'<a href="http://ccp.smootharrangement.de/">Click here to login.</a>',$msg);
+               $msg = str_replace("{benutzeremail}",$email,$msg);      
+               $msg = str_replace("{passwort}",$password,$msg);
+               $html = '<html lang="en" dir="ltr" style="border: 0 none;font: inherit;margin: 0;padding: 0;vertical-align: baseline;">
+                             <head>
+                                  <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+                                  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+                                  <meta content="width=device-width" name="viewport">
+                                  
+                             </head>
+                             <body style="background: #FFFFFF;color: #333333;font-family: Helvetica,Arial,sans-serif;font-size: 14px;line-height: 1.5em;margin: 0;padding: 40px 0;">
+                                    '.$msg.'    
+                             </body>
+                        </html>';
+                $headers  = 'MIME-Version: 1.0' . "\r\n";
+                $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+                // Additional headers
+                
+                $headers .= 'From: CCP <'.$template['vSender'].'>' . "\r\n";
+                $sub = $template['vSubject'];
+                mail($email, $sub, $html, $headers);
+          }
+     }
+     if(isset($_REQUEST['login_name']) && $_REQUEST['login_name'] != ""){
+          $email = $_REQUEST['login_name'];
+          $pass = $_REQUEST['login_pw'];
+          $remeber = $_REQUEST['login_remember'];
+          $year = time() + 31536000;
+		setcookie("username",$email,time()-10);
+		setcookie("password",$pass,time()-10);
+		
+		if(trim($remeber) == "on"){
+               setcookie('username', $email, $year);        // Sets the cookie username
+    			setcookie('password', $pass, $year);
+		}
+          $emsg = "";
+          if($email != "" && $pass != ""){
+          	$pass = base64_encode($pass);
+               $checklogin = "SELECT * FROM user_mst WHERE vEmail='".$email."' AND vPassword='".$pass."'";
+               $checkloginresult = mysql_query($checklogin);
+               if(mysql_num_rows($checkloginresult) == 0){
+                    $emsg = "Invalid credentials.";
+               } else {
+                    $row = mysql_fetch_assoc($checkloginresult);
+                    $_SESSION['id'] = $row['iId'];
+                    $_SESSION['uid'] = $row['iId'];
+                    $_SESSION['uname'] = $row['vFname']." ".$row['vLname'];
+                    $_SESSION['utype'] = $row['vUserType'];
+                    $_SESSION['sucess'] = "You have been successfully logged in as ".$_SESSION['uname'];
+                    $date = date("Y-m-d H:i:s");
+                    $uplogin = "UPDATE user_mst SET dLastLogin='".$date."' WHERE iId='".$row['iId']."'";
+                    mysql_query($uplogin);
+                    echo "<script type='text/javascript'>window.top.location='ccp.php';</script>";
+               }
+          } else {
+               $emsg = "Invalid credentials.";
+          }
+     }
+?>
 <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
@@ -153,7 +244,15 @@
     <script src="js/app.js"></script>
 
     <!-- end scripts -->
-
+<style>
+    .ui-dialog {
+        width: 505px !important;
+    }
+    .ui-dialog .actions{
+        left:0px;
+        position: static;
+    }
+</style>
 </head>
 
 <body class=login>
@@ -163,7 +262,7 @@
 	<!-- The loading box -->
 	<div id="loading-overlay"></div>
 	<div id="loading">
-		<span>Lade...</span>
+		<span><?php echo $langArray['LBL_LOADING']; ?></span>
 	</div>
 	<!-- End of loading box -->
 
@@ -223,18 +322,45 @@
 	<!-- The container of the sidebar and content box -->
 	<section id="login" class="container_12 clearfix">
 
-		<form action="ccp.php" method="post" class="box validate">
+		<form action="" method="post" class="box validate">
 
 			<div class="header">
-				<h2><span class="icon icon-lock"></span>Login Kundenberreich</h2>
+				<h2><span class="icon icon-lock"></span><?php echo $langArray['LBL_LOGIN']; ?></h2>
 			</div>
 
 			<div class="content">
 
 				<!-- Login messages -->
 				<div class="login-messages">
-					<div class="message welcome">Willkommen zurück!</div>
-					<div class="message failure">Bitte prüfen Sie Ihre Zugangsdaten</div>
+					<div class="message welcome" style="display:none;"><?php echo $langArray['LBL_WELCOME']; ?></div>
+					<?php
+                              if($emsg != ""){
+                          ?>
+					     <div class="message welcome" style="display:none;"><?php echo $langArray['LBL_WELCOME']; ?></div>
+					<?php
+                              } else {
+                                   if($smsg != ""){
+                         ?>
+                                        <div class="message welcome" style="display:block;"><?=$smsg?></div>
+                         <?php
+                                   } else {
+                         ?>
+                                        <div class="message welcome" style="display:block;"><?php echo $langArray['LBL_WELCOME']; ?></div>
+                         <?php
+                                   }
+                              }
+                         ?>
+                         <?php
+                              if($emsg != ""){
+                          ?>
+					     <div class="message failure" style="display:block;"><?=$emsg?></div>
+					<?php
+                              } else {
+                         ?>
+                              <div class="message failure" style="display:none;">Bitte prüfen Sie Ihre Zugangsdaten</div>
+                         <?php
+                              }
+                         ?>
 				</div>
 
 				<!-- The form -->
@@ -242,21 +368,22 @@
 
 					<div class="row">
 						<label for="login_name">
-							<strong>Benutzername</strong>
-							<small>(E-Mail)</small>
+							<strong><?php echo $langArray['LBL_USERNAME']; ?></strong>
+							<small>(<?php echo $langArray['LBL_EMAILADDRESS']; ?>)</small>
 						</label>
 						<div>
-							<input tabindex=1 type="text" class="required" name=login_name id=login_name />
+							<input tabindex=1 type="text" class="required" name=login_name id="login_name" value="<?php echo $_COOKIE['username']; ?>" />
 						</div>
 					</div>
 
 					<div class="row">
 						<label for="login_pw">
-							<strong>Passwort</strong>
-							<small><a href="javascript:void(0);" id="">Passwort vergessen?</a></small>
-						</label>
+							<strong><?php echo $langArray['LBL_PASSWORD']; ?></strong>
+                                                        <a style="border-bottom:1px dotted black;" href="javascript:void(0);" class="open-forget-password-dialog"><?php echo $langArray['LBL_FORPASSWORD']."?"; ?></a>
+							<small><a href="javascript:void(0);" id=""></a></small>
+                                                </label>
 						<div>
-							<input tabindex=2 type="password" class="required" name=login_pw id=login_pw />
+							<input tabindex=2 type="password" class="required" name=login_pw id="login_pw" value="<?php echo $_COOKIE['password']; ?>" />
 						</div>
 					</div>
 
@@ -267,21 +394,141 @@
 			<div class="actions">
 				<div class="left">
 					<div class="rememberme">
-						<input tabindex=4 type="checkbox" name="login_remember" id="login_remember" /><label for="login_remember">Zugangsdaten speichern?</label>
+						<input tabindex=4 type="checkbox" name="login_remember" id="login_remember" <?php if(isset($_COOKIE['username']) && $_COOKIE['username'] != "") {
+							echo 'checked="checked"';
+						}
+						else {
+							echo '';
+						}
+						?> /><label for="login_remember"><?php echo $langArray['LBL_SAVELOGINDATA']."?"; ?></label>
 					</div>
 				</div>
 				<div class="right">
-					<input tabindex=3 type="submit" value="Einloggen" name="login_btn" />
+					<input tabindex=3 type="submit" value="<?php echo $langArray['LBL_LOGIN']; ?>" name="login_btn" id="login_btn"/>
 				</div>
 			</div><!-- End of .actions -->
-
 		</form><!-- End of form -->
-
 	</section>
-
+         <div style="display: none;" id="dialog_forget_password" title="Forgot Password">
+        <form action="" class="full validate" method="post">
+            <div class="row">
+                <label for="email">
+                    <strong>E-mail Address</strong>
+                </label>
+                <div>
+                    <input class="required email" type=text name=email id=email />
+                </div>
+            </div>
+            <div class="actions">
+                <div class="left">
+                    <button class="grey cancel">Abort</button>
+                </div>
+                <div class="right">
+                    <button type="submit" name="forgote">Request</button>
+                </div>
+            </div>
+          </form>
+    </div><!-- E
 	<!-- Spawn $$.loaded -->
 	<script>
 		$$.loaded();
+          $$.ready(function() {
+              $( "#dialog_add_client" ).dialog({
+                  autoOpen: false,
+                  modal: true,
+                  width: 400,
+                  open: function(){ $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize() }
+              }).find('button.submit').click(function(){
+                  var $el = $(this).parents('.ui-dialog-content');
+                  if ($el.validate().form()) {
+                      $el.find('form')[0].reset();
+                      $el.dialog('close');
+                  }
+              }).end().find('button.cancel').click(function(){
+                  var $el = $(this).parents('.ui-dialog-content');
+                  $el.find('form')[0].reset();
+                  $el.dialog('close');;
+              });
+
+              $( ".open-add-client-dialog" ).click(function() {
+                  $( "#dialog_add_client" ).dialog( "open" );
+                  return false;
+              });
+
+              $( "#dialog_forget_password" ).dialog({
+                  autoOpen: false,
+                  modal: true,
+                  width: 400,
+                  open: function(){ $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize() }
+              }).find('button.submit').click(function(){
+                  var $el = $(this).parents('.ui-dialog-content');
+                  if ($el.validate().form()) {
+                      $el.find('form')[0].reset();
+                      $el.dialog('close');
+                  }
+              }).end().find('button.cancel').click(function(){
+                  var $el = $(this).parents('.ui-dialog-content');
+                  $el.find('form')[0].reset();
+                  $el.dialog('close');;
+              });
+
+              $( ".open-forget-password-dialog" ).click(function() {
+                  $( "#dialog_forget_password" ).dialog( "open" );
+                  return false;
+              });
+
+               $("#d2_email1").keydown(function(event) {
+                    if (event.ctrlKey==true && (event.which == '118' || event.which == '86')) {
+                         event.preventDefault();
+                    }
+               });
+			$(".geflag").live("click",function(){
+			     document.cookie = "language=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+			     document.cookie="language=ge";
+				window.location.reload();
+			});
+
+			$(".enflag").live("click",function(){
+				document.cookie = "language=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        			document.cookie="language=en";
+			     window.location.reload();
+			});
+			$( "#login_pw" ).keypress(function( event ) {
+                    if ( event.which == 13 ) {
+                         $("#login_form").submit();
+                    }
+               });
+			$("#login_btn").live("click",function(){
+                             var formvalid = $("#login_form").valid();
+                             if(formvalid){
+					var check = $("#login_remember").is(":checked");
+					if(check){
+						//if(confirm("Sure you want to save login detail")){
+	         					   $("#login_form").submit();
+						/*} else {
+						        $("#login_remember").trigger("click");
+	                                 $("#login_form").submit();
+						}*/
+					} else {
+	                        $("#login_form").submit();
+					}
+                                       
+			    }
+			});
+                        
+			$("#login_remember").change(function() {
+                    if(this.checked) {
+                         if(confirm("Möchten Sie Ihre Zugangsdaten wirklich speichern?")){
+                         } else {
+  				        var check = $("#login_remember").is(":checked");
+  				        if(check){
+                                   $("#login_remember").removeAttr("checked");
+                                   $("#login_remember").parent("div").children("span").removeClass("checkbox-checked");  
+                            }
+  				    }
+                    }
+			});
+          });
 	</script>
     <script>
         $('#login').find('form').validationOptions({

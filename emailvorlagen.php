@@ -1,4 +1,17 @@
-﻿<!doctype html>
+﻿<?php
+     include('include/connection.php');
+     include("include/language.php");
+     if((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")){
+          header("location:index.php");
+     }
+	$id = $_SESSION['uid'];
+	$query = "SELECT * FROM user_mst WHERE iId='".$id."'" ;
+	$userData = mysql_query($query);
+	$userData = mysql_fetch_assoc($userData);	 
+    $sql = "SELECT * FROM email_template WHERE iId > 7";
+    $result = mysql_query($sql);
+?>
+<!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
 <!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
@@ -81,7 +94,12 @@
 
 
 
-
+    <style type="text/css">
+    .editor {
+        display: block !important;
+        width: 100% !important;
+    }
+    </style>
 
 
 
@@ -172,7 +190,7 @@
     <!-- The lock screen -->
     <div id="lock-screen" title="Bildschrim gesperrt">
 
-        <a href="index.php" class="header right button grey flat">Logout</a>
+        <a href="logout.php" class="header right button grey flat">Logout</a>
 
         <p>Du wurdest sicherheitshalber wegen Inaktivität ausgelogt.</p>
         <p>1. Bitte schieb den Regler nach rechts<br>2. Bitte gib Dein Passwort ein</p>
@@ -183,7 +201,9 @@
                 <span>entsperren</span>
             </div>
             <form action="#" method="GET">
-                <input type="password" name="pwd" id="pwd" placeholder="Bitte Passwort eingeben..." autocorrect="off" autocapitalize="off"> <input type="submit" name=send value="OK" disabled> <input type="reset" value="X">
+                
+               
+                <input type="password" name="pwd" id="pwd" placeholder="<?php echo $langArray['LBL_PASSWORDHINT']; ?>" autocorrect="off" autocapitalize="off"> <input type="submit" name=send value="<?php echo $langArray['LBL_PASSWORDOK']; ?>" disabled> <input type="reset" value="<?php echo $langArray['LBL_PASSWORDCANCEL']; ?>">
             </form>
         </div><!-- End of .actions -->
 
@@ -436,7 +456,7 @@
             <div class="right">
                 <ul>
 
-                    <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span>Philipp Dallmann</a></li>
+                    <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span><?php echo $userData['vFname'].' '.$userData['vLname'];?></a></li>
 
                     <li>
                         <a href="#"><span>1</span>Tickets</a>
@@ -538,7 +558,7 @@
                     <img src="img/layout/content/toolbar/user/avatar.png">
 <!--                     <span>1</span> -->
                 </div>
-                <span>Philipp Dallmann</span>
+                <span><?php echo $userData['vFname'].' '.$userData['vLname'];?></span>
                 <ul>
                     <li><a href="javascript:$$.settings();">Kundendaten</a></li>
                     <li class="line"></li>
@@ -552,6 +572,7 @@
         </section><!-- End of .toolbar-->
 
         <!-- The sidebar -->
+        <?php if($userData['vUserType']==1){ ?>
         <aside>
             <div class="top">
 
@@ -618,10 +639,10 @@
              <div class="bottom sticky">
                 <div class="divider"></div>
                 <div class="buttons">
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neuer Kunde</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neue Rechnung</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Angebot</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Ticket</a>
+                    <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
+                    <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
+                                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
+                                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
                 </div>
                 <div class="divider"></div>				
                 <div class="progress">
@@ -632,7 +653,7 @@
             </div><!-- End of .bottom -->
 
         </aside><!-- End of sidebar -->
-
+<?php } ?>
         <!-- Here goes the content. -->
         <section id="content" class="container_12 clearfix" data-sort=true>
 			<div class="grid_12">
@@ -659,70 +680,97 @@
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Neues Kundenkonto</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_1_1" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_1_1" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_1_1" type="text" value = "<?php echo $data["vSubject"] ?>" />
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_1_1">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_1_1" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Passwort vergessen</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_1_2" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_1_2" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_1_2" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_1_2">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_1_2" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Informationen zum Kundenkonto</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_1_3" type="text" value = "<?php echo $data["vSender"] ?>"/>
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_1_3" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_1_3" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_1_3">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_1_3" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 					</div><!-- End of .content -->
@@ -741,115 +789,160 @@
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Neue Rechnung</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_2_1" type="text" value = "<?php echo $data["vSender"] ?>"/>
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_2_1" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_2_1" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_2_1">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_2_1" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Zahlungserinnerung</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_2_2" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_2_2" type="text" value = "<?php echo $data["vname"] ?>"/>
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_2_2" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_2_2">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_2_2" class="editor full"><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">1. Mahnung</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_2_3" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_2_3" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_2_3" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_2_3">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_2_3" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">2. Mahnung</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_2_4" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_2_4" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_2_4" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_2_4">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_2_4" class="editor full" ></textarea>
 </p>
 						</div>
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">3. Mahnung</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_2_5" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_2_5" type="text" value = "<?php echo $data["vname"] ?>"/>
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_2_5" type="text" value = "<?php echo $data["vSubject"] ?>" />
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_2_5">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_2_5" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>					
 
@@ -869,93 +962,129 @@
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Neues Angebot</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_3_1" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_3_1" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_3_1" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_3_1">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_3_1" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Angebot Akzeptiert</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_3_2" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_3_2" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_3_2" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_3_2">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_3_2" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Angebot Abgelehnt</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_3_3" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_3_3" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_3_3" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_3_3">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_3_3" class="editor full" ><?php echo $data["tMessage"] ?></textarea>
 </p>
 						</div>
 
 						<h3 style="margin-left:-10px; margin-right:-10px;"><a href="#">Erinnerung an Angebot</a></h3>
 						<div>
+                        <?php $data = mysql_fetch_array($result); ?>
 <p class="_25">
 <label>Absender E-Mail</label>
-<input type="text" />
+<input id="absender_mail_3_4" type="text" value = "<?php echo $data["vSender"] ?>" />
 </p>
 <p class="_25">
 <label>Absender Name</label>
-<input type="text" />
+<input id="absender_name_3_4" type="text" value = "<?php echo $data["vname"] ?>" />
 </p>
 <p class="_25">
 <label>Betreff</label>
-<input type="text" />
+<input id="betreff_3_4" type="text" value = "<?php echo $data["vSubject"] ?>"/>
 </p>
 <p class="_25">
 <label>Kopie</label>
-<select><option>Ja</option><option>Nein</option></select>
+<select id="kopie_3_4">
+    <?php if($data["copy"] == "1") { ?>
+        <option value="1" selected="selected">Ja</option>
+        <option value="0">Nein</option>
+    <?php }else{ ?>
+        <option value="1">Ja</option>
+        <option value="0" selected="selected">Nein</option>
+    <?php } ?>
+</select>
 </p>
 <p class="_100">
-<textarea class="editor full"></textarea>
+<textarea id="textarea_3_4" class="editor full" > <?php echo $data["tMessage"] ?> </textarea>
 </p>
 						</div>
 					
@@ -970,7 +1099,7 @@
 						<div class="left">
 						</div>
 						<div class="right">
-							<input type="submit" value="Speichern" name=send />
+							<input id="submit_btn" type="submit" value="Speichern" name=send />
 						</div>
 					</div>	
 				</div><!-- End of .box -->
@@ -1033,6 +1162,67 @@
     <!-- Spawn $$.loaded -->
     <script>
         $$.loaded();
+          <?php
+               if(isset($_SESSION['id']) && $_SESSION['id'] != "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == ""){
+          ?>
+                    $$.ready(function() {
+                         setTimeout(function(){
+                              $('#btn-lock').trigger('click');
+                         },2000);
+                    });
+          <?php
+               }
+          ?>		
+        $$.ready(function(){
+            $('#submit_btn').click(function(){
+                var strindex = $('.header ul li.current a').attr("href");
+                var numsofPanel = [3,5,4];
+                var arriIDs = [[8,9,10],[11,12,13,14,15],[16,17,18,19]];
+                var panel_index = 1;
+
+                if (strindex == "#t1-c1"){
+                    panel_index = 1;
+                }else if(strindex == "#t1-c2"){
+                    panel_index = 2;
+                }else if(strindex == "#t1-c3"){
+                    panel_index = 3;
+                }
+
+                var accordion_index = 1;
+
+                for (var i = 0; i < numsofPanel[panel_index-1]; i++){
+                    if ($('div#ui-accordion-' + panel_index.toString() + '-panel-' + i.toString()).attr("aria-expanded") == "true"){
+                        accordion_index = i + 1;
+                        break;
+                    }
+                }
+
+                var absender_mail = $('#absender_mail_' + panel_index.toString() + "_" + accordion_index.toString()).val();
+                var absender_name = $('#absender_name_' + panel_index.toString() + "_" + accordion_index.toString()).val();
+                var betreff = $('#betreff_' + panel_index.toString() + "_" + accordion_index.toString()).val();
+                var kopie = $('#kopie_' + panel_index.toString() + "_" + accordion_index.toString()).val();
+                var textfield = $('#textarea_' + panel_index.toString() + "_" + accordion_index.toString()).val();
+
+                $.post(
+                        "ajax_save.php",
+                        { 
+                              type: 'email_template', 
+                              iId: arriIDs[panel_index-1][accordion_index-1], 
+                              absender_email_tag : absender_mail, 
+                              absender_name_tag : absender_name,
+                              betreff_tag : betreff,
+                              kopie_tag : kopie,
+                              textfield_tag : textfield
+                        }
+                ).done(function( data ) {
+                        if(data == "YES"){
+                            alert("Erfolgreich gespeichert.");
+                        } else {
+                            alert('Bitte prüfe Deine Eingaben.');
+                        }
+                });
+            });
+        });
     </script>
 
     <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.

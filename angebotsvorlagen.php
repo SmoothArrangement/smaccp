@@ -1,4 +1,17 @@
-﻿<!doctype html>
+﻿<?php
+     include('include/connection.php');
+     include("include/language.php");
+     if((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")){
+          header("location:index.php");
+     }
+	$id = $_SESSION['uid'];
+	$query = "SELECT * FROM user_mst WHERE iId='".$id."'" ;
+	$userData = mysql_query($query);
+	$userData = mysql_fetch_assoc($userData);	 
+     $sql = "SELECT * FROM invoice_template WHERE iId = 2";
+     $result = mysql_query($sql);
+?>
+<!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
 <!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
@@ -172,7 +185,7 @@
     <!-- The lock screen -->
     <div id="lock-screen" title="Bildschrim gesperrt">
 
-        <a href="index.php" class="header right button grey flat">Logout</a>
+        <a href="logout.php" class="header right button grey flat">Logout</a>
 
         <p>Du wurdest sicherheitshalber wegen Inaktivität ausgelogt.</p>
         <p>1. Bitte schieb den Regler nach rechts<br>2. Bitte gib Dein Passwort ein</p>
@@ -183,7 +196,9 @@
                 <span>entsperren</span>
             </div>
             <form action="#" method="GET">
-                <input type="password" name="pwd" id="pwd" placeholder="Bitte Passwort eingeben..." autocorrect="off" autocapitalize="off"> <input type="submit" name=send value="OK" disabled> <input type="reset" value="X">
+                
+               
+                <input type="password" name="pwd" id="pwd" placeholder="<?php echo $langArray['LBL_PASSWORDHINT']; ?>" autocorrect="off" autocapitalize="off"> <input type="submit" name=send value="<?php echo $langArray['LBL_PASSWORDOK']; ?>" disabled> <input type="reset" value="<?php echo $langArray['LBL_PASSWORDCANCEL']; ?>">
             </form>
         </div><!-- End of .actions -->
 
@@ -436,7 +451,7 @@
             <div class="right">
                 <ul>
 
-                    <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span>Philipp Dallmann</a></li>
+                    <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span><?php echo $userData['vFname'].' '.$userData['vLname'];?></a></li>
 
                     <li>
                         <a href="#"><span>1</span>Tickets</a>
@@ -536,22 +551,21 @@
             <div class="user">
                 <div class="avatar">
                     <img src="img/layout/content/toolbar/user/avatar.png">
+                    <img src="img/layout/content/toolbar/user/avatar.png">
 <!--                     <span>1</span> -->
                 </div>
-                <span>Philipp Dallmann</span>
+                <span><?php echo $userData['vFname'].' '.$userData['vLname'];?></span>
                 <ul>
                     <li><a href="javascript:$$.settings();">Kundendaten</a></li>
                     <li class="line"></li>
                     <li><a href="index.php">Logout</a></li>
                 </ul>
             </div>
-
-
-
-
+            
         </section><!-- End of .toolbar-->
 
         <!-- The sidebar -->
+        <?php if($userData['vUserType']==1){ ?>
         <aside>
             <div class="top">
 
@@ -618,10 +632,10 @@
              <div class="bottom sticky">
                 <div class="divider"></div>
                 <div class="buttons">
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neuer Kunde</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neue Rechnung</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Angebot</a>
-                    <a href="javascript:void(0);" class="button grey open-add-client-dialog">Neues Ticket</a>
+                    <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
+                    <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
+                                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
+                                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
                 </div>
                 <div class="divider"></div>				
                 <div class="progress">
@@ -632,17 +646,18 @@
             </div><!-- End of .bottom -->
 
         </aside><!-- End of sidebar -->
-
+<?php } ?>
         <!-- Here goes the content. -->
         <section id="content" class="container_12 clearfix" data-sort=true>
 		
 			<div class="grid_12">
+                <?php $data = mysql_fetch_array($result); ?>
 				<form action="" class="box">
 					<div class="header">
 						<h2>Angebotsvorlage (HTML)</h2>
 					</div>
 					<div class="content">
-						<textarea class="editor full"></textarea>
+						<textarea id="textarea_html" class="editor full"> <?php echo $data["html"] ?> </textarea>
 					</div>
 				</form>
 			</div><!-- End of .grid_12 -->
@@ -652,7 +667,7 @@
 						<h2>Dynamischer Berreich (HTML)</h2>
 					</div>
 					<div class="content">
-						<textarea class="editor full"></textarea>
+						<textarea id="textarea_dynamic" class="editor full"> <?php echo $data["dynamic"] ?> </textarea>
 					</div>
 				</form>
 			</div><!-- End of .grid_12 -->
@@ -662,7 +677,7 @@
 						<h2>Angebotsvorlage (CSS)</h2>
 					</div>
 					<div class="content" style="padding-left:0;">
-						<textarea rows=10 style="width:100%;"></textarea>
+						<textarea id="textarea_css" rows=10 style="width:100%;"> <?php echo $data["css"] ?> </textarea>
 					</div>
 					
 				</form>
@@ -670,8 +685,8 @@
 						<div class="left">
 						</div>
 						<div class="right">
-							<input type="submit" value="Vorschau" name=send />
-						<input type="submit" value="Speichern" name=send />
+						<input id="submit_vorschau" type="submit" value="Vorschau" name=send />
+						<input id="submit_speichern" type="submit" value="Speichern" name=send />
 						</div>
 					</div>	
 			</div><!-- End of .grid_12 -->		
@@ -732,6 +747,40 @@
     <!-- Spawn $$.loaded -->
     <script>
         $$.loaded();
+          <?php
+               if(isset($_SESSION['id']) && $_SESSION['id'] != "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == ""){
+          ?>
+                    $$.ready(function() {
+                         setTimeout(function(){
+                              $('#btn-lock').trigger('click');
+                         },2000);
+                    });
+          <?php
+               }
+          ?>		
+        $$.ready(function(){
+            $('#submit_speichern').click(function(){
+                var html = $('#textarea_html').val();
+                var dynamic = $('#textarea_dynamic').val();
+                var css = $('#textarea_css').val();
+
+                $.post(
+                    'ajax_save.php',
+                    {
+                        type: 'invoice_template_a',
+                        html_tag: html,
+                        dynamic_tag: dynamic,
+                        css_tag: css
+                    }
+                ).done(function(data){
+                        if(data == "YES"){
+                            alert("Successfully saved.");
+                        } else {
+                            alert('Try Again.');
+                        }
+                });
+            });
+        });
     </script>
 
     <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
