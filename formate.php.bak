@@ -691,80 +691,7 @@
 					
 				</div><!-- End of .box -->
 			</div><!-- End of .grid_12 -->
-<div class="grid_6"><div class="box">
-<div class="header"><h2>Mahnlauf</h2></div>
-<div class="content">
-	<table class="styled">
-		<colgroup>
-			<col span="1">
-			<col span="1">
-			<col span="1">
-		</colgroup>
-
-	<thead>
-		<tr>
-			<th>Mahnstufe</th>
-			<th>Tage</th>
-			<th>Speichern</th>
-		</tr>
-	</thead>
-	<tbody>
-         <?php
-            $sql = "SELECT * FROM dunning";
-            $dunning = mysql_query($sql);
-            while($row = mysql_fetch_assoc($dunning)){
-        ?>
-        <tr data_id="<?=$row['iId']?>">
-            <td><?=$row['mahnstufe']?></td>
-            <td contenteditable class="prefix"><?=$row['tage']?></td>
-            <td class="center"><a href="#" class="button small grey tooltip save_tage" data-gravity=s title="Speichern"><i class="icon-save"></i></a></td>
-        </tr>
-        <?php
-             }
-        ?>
-	</tbody>
-	</table>
-</div><!-- End of .content -->
-</div><!-- End of .box -->
-</div><!-- End of .grid_12 -->	
-<div class="grid_6"><div class="box">
-<div class="header"><h2>Angebotsdauer</h2></div>
-<div class="content">
-	<table class="styled">
-		<colgroup>
-			<col span="1">
-			<col span="1">
-			<col span="1">
-		</colgroup>
-
-	<thead>
-		<tr>
-			<th>Status</th>
-			<th>Tage</th>
-			<th>Speichern</th>
-		</tr>
-	</thead>
-	<tbody>
-         <?php
-            $sql = "SELECT * FROM offer";
-            $offer = mysql_query($sql);
-            while($row = mysql_fetch_assoc($offer)){
-        ?>
-        <tr data_id="<?=$row['iId']?>">
-            <td><?=$row['angebotstyp']?></td>
-            <td contenteditable class="prefix"><?=$row['tage']?></td>
-            <td class="center"><a href="#" class="button small grey tooltip save_tage" data-gravity=s title="Speichern"><i class="icon-save"></i></a></td>
-        </tr>
-        <?php
-             }
-        ?>
-	</tbody>
-	</table>
-</div><!-- End of .content -->
-</div><!-- End of .box -->
-</div><!-- End of .grid_12 -->
-			<div class="grid_12 clearfix"></div>			
-			<div class="grid_4">
+			<div class="grid_3">
 				<div class="box">
 				
 					<div class="header">
@@ -807,9 +734,8 @@
 					</div><!-- End of .content -->
 					
 				</div><!-- End of .box -->
-				
 			</div><!-- End of .grid_12 -->
-			<div class="grid_4">
+			<div class="grid_3">
 				<div class="box">
 				
 					<div class="header">
@@ -854,7 +780,7 @@
 					
 				</div><!-- End of .box -->
 			</div><!-- End of .grid_12 -->			
-			<div class="grid_4">
+			<div class="grid_6">
 				<div class="box">
 				
 					<div class="header">
@@ -1073,7 +999,7 @@
                          url: "ajax_save.php",
                          data: { type: 'save_nr', id: id, prefix: prefix, sufix: sufix, nextnumber: nextnumber }
                     }).done(function() {});
-               });   
+               });
                $('.new_solution').live('click', function(e){
                     e.preventDefault();
                     $.ajax({

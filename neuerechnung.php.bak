@@ -1,14 +1,10 @@
 <?php
-ob_start();
      include('include/connection.php');
      include("include/language.php");
-     if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == ""))
-	 {
+     if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")) {
           header("location:index.php");
      }
-     
-	 if(isset($_REQUEST['invid']) && $_REQUEST['invid'] != "")
-	 {
+     if(isset($_REQUEST['invid']) && $_REQUEST['invid'] != ""){
           $invid = $_REQUEST['invid'];
           $in_sql = "SELECT invc.*, usr.vFname, usr.vLname, usr.vCustomerNumber, tax.vVat FROM invoice_mst as invc
                     LEFT JOIN user_mst as usr ON usr.iId = invc.iCustomerId
@@ -26,9 +22,7 @@ ob_start();
           $tax = $invoice_data['iTex'];
           $tax_val = $invoice_data['vVat'];
           $shipping = $invoice_data['vShipping'];
-     } 
-	 else 
-	 {
+     } else {
           $invid = "";
           $cust_id = "";
           $inv_no = "";
@@ -40,8 +34,7 @@ ob_start();
           $tax_val = "";
           $shipping = "0";
      }
-     if (isset($_REQUEST['send'])) // Save data
-	 {
+     if (isset($_REQUEST['send'])) {
           $customer_id = mysql_real_escape_string($_REQUEST['customer']);
           
           $sql = "SELECT * FROM number_range WHERE iId = '3'";
@@ -49,393 +42,44 @@ ob_start();
           $row = mysql_fetch_assoc($number_range);
           $prefix = $row['vPrefix'];
           $sufix = $row['vSufix'];
-   		   
-		  $invoice_number = mysql_real_escape_string($_REQUEST['invoice_number']);
-		   
-		   ////////////
-		$sql = "SELECT * FROM invoice_mst where vInvoiceNumber = '".$invoice_number."' ";
-		$invoice = mysql_query($sql);
-		if(mysql_num_rows($invoice) > 0)
-		{
-			$row = mysql_fetch_assoc($invoice);
-			$nextid = $row['iId'];
-			$isUpdate = 1;
-		}
-		else
-		{
-			$sql = "SELECT * FROM invoice_mst ORDER BY iId DESC LIMIT 1";
-			$invoice = mysql_query($sql);
-			$row = mysql_fetch_assoc($invoice);
-			$nextid = $row['iId'] + 1;
-			$isUpdate = 0;
-		}
-		   ////////
-		       
+
+          $sql = "SELECT * FROM invoice_mst ORDER BY iId DESC LIMIT 1";
+          $invoice = mysql_query($sql);
+          $row = mysql_fetch_assoc($invoice);
+          $nextid = $row['iId'] + 1;
+          $invoice_number = $prefix.$nextid.$sufix;
+               
           $invoice_date = mysql_real_escape_string($_REQUEST['invoice_date']);
           $invoice_date = explode("/", $invoice_date);
-		
-          if (isset($invoice_date[2]))
-		  {
-			$invoice_date_temp = $invoice_date[1].".".$invoice_date[0].".".$invoice_date[2];
-			$invoice_date = $invoice_date[2] . "-" . $invoice_date[0] . "-" . $invoice_date[1] . " 00:00:00";
-          } 
-		  else 
-		  {
+          if (isset($invoice_date[2])) {
+               $invoice_date = $invoice_date[2] . "-" . $invoice_date[0] . "-" . $invoice_date[1] . " 00:00:00";
+          } else {
                $invoice_date = "0000-00-00 00:00:00";
           }
-
+          
           $payment_term = mysql_real_escape_string($_REQUEST['payment_term']);
           $payment_type = mysql_real_escape_string($_REQUEST['payment_type']);
           $comment = mysql_real_escape_string($_REQUEST['comment']);
           $shipping = mysql_real_escape_string($_REQUEST['shipping']);
-		  
-		  $shipping_temp = $shipping;
-		  
-		  $grand_total = mysql_real_escape_string($_REQUEST['grand_total']);
-		  
-		  
           $shipping = preg_replace('/[^A-Za-z0-9 !@#$%^&*().,]/u','', strip_tags($shipping));
           $shipping = str_replace(',', '.', $shipping);
           $tax_id = mysql_real_escape_string($_REQUEST['tax_id']);
           $date = date('Y-m-d H:i:s');
           $addedby = $_SESSION['uid'];
-          
-			if($isUpdate)
-			{
-			 $invoice_add = "UPDATE invoice_mst SET `iCustomerId` = '".$customer_id."', `vInvoiceNumber` = '".$invoice_number."', `dInvoiceDate` = '".$invoice_date."', `iTermOfPayment` = '".$payment_term."', `iPayment` = '".$payment_type."', `vShipping` = '".$shipping."', `iTex` = '".$tax_id."', `tComment` = '".$comment."', `iAddedBy` = '".$addedby."', `dAddedDate` = '".$date."' where `iId` =  '".$nextid."' ";
-			}
-		  else
-		  {
-		   $invoice_add = "INSERT INTO invoice_mst (`iId`, `iCustomerId`, `vInvoiceNumber`, `dInvoiceDate`, `iTermOfPayment`, `iPayment`, `vShipping`, `iTex`, `tComment`, `iAddedBy`, `dAddedDate`) VALUES ('".$nextid."', '".$customer_id."', '".$invoice_number."', '".$invoice_date."', '".$payment_term."', '".$payment_type."', '".$shipping."', '".$tax_id."', '".$comment."', '".$addedby."', '".$date."')";
-		  }
-		  
+          $invoice_add = "INSERT INTO invoice_mst (`iId`, `iCustomerId`, `vInvoiceNumber`, `dInvoiceDate`, `iTermOfPayment`, `iPayment`, `vShipping`, `iTex`, `tComment`, `iAddedBy`, `dAddedDate`) VALUES ('".$nextid."', '".$customer_id."', '".$invoice_number."', '".$invoice_date."', '".$payment_term."', '".$payment_type."', '".$shipping."', '".$tax_id."', '".$comment."', '".$addedby."', '".$date."')";
           mysql_query($invoice_add);
           
-		  ////////////////////////////////////////////
-		$invoice_rs = mysql_query("SELECT * FROM `invoice_template` WHERE `templatename`='Rechnungsvorlage' ");
-		$invoice_row = mysql_fetch_assoc($invoice_rs);
-		$tem_html = $invoice_row['html'];
-		$tem_dynamic = $invoice_row['dynamic'];
-		  
-		  ////////////////////////////////////////////////////////
-		  $invoice_dynamic_text = '';
-		  $body='';
-		  $sub_tot = 0;
-		  
-           mysql_query("DELETE FROM invoice_items where `iInvoiceId` = '".$nextid."' ");
-		  
-          foreach($_REQUEST['qty'] as $key => $value)
-		  {
+          foreach($_REQUEST['qty'] as $key => $value){
                $qty = mysql_real_escape_string($value);
                $description = mysql_real_escape_string($_REQUEST['description'][$key]);
                $price = mysql_real_escape_string($_REQUEST['price'][$key]);
-			   
-			   $price_temp = $price;
-			   
                $price = str_replace(',', '.', $price);
                $date = date('Y-m-d H:i:s');
                $item_sql = "INSERT INTO invoice_items (`iInvoiceId`, `iItemOrder`, `vQTY`, `tDescription`, `vPrice`, `iAddedBy`, `dAddedDate`) VALUES ('".$nextid."', '".($key+1)."', '".$qty."', '".$description."', '".$price."', '".$addedby."', '".$date."')";
                mysql_query($item_sql);
-			   
-			   $p_total = $_REQUEST['price_total'][$key];
-			   
-			   $p_total = str_replace('€','',$p_total);
-			   
-				$body = str_replace(array(
-				'{position}',
-				'{description}',
-				'{unitprice}', 
-				'{qty}',
-				'{total}'), array(
-				$key+1,
-				$description,
-				$price_temp,
-				$value,
-				$p_total), $tem_dynamic);
-				
-				$invoice_dynamic_text.= $body;
-				$sub_tot += $p_total;
-			   
           }
-		  
-$user_rs = mysql_query("SELECT * FROM user_mst WHERE iId='".$customer_id."' ");
-          $user_row = mysql_fetch_assoc($user_rs);
-			
-			$firstname = $user_row['vFname'];
-			$surname = $user_row['vLname'];
-			$street = $user_row['vRoad'];
-			$nr = $user_row['vHouseNumber'];
-			$zipcode = $user_row['vZip'];
-			$city = $user_row['vPlace'];
-			$country = $user_row['vCountry'];
-			$useremail = $user_row['vEmail'];
-
-$invoice_rs = mysql_query("SELECT * FROM `payment_term_mst` WHERE `iId` = '".$payment_term."' ");
-$invoice_row = mysql_fetch_assoc($invoice_rs);
-$payment_term_html = $invoice_row['vName'];
-
-
-$invoice_rs = mysql_query("SELECT * FROM `payment_mst` WHERE `iId` =  '".$payment_type."' ");
-$invoice_row = mysql_fetch_assoc($invoice_rs);
-$payment_type_html = $invoice_row['vPayment'];
-
-$invoice_rs = mysql_query("SELECT * FROM `country_mst` WHERE `iId` = '".$country."' ");
-$invoice_row = mysql_fetch_assoc($invoice_rs);
-$country_html = $invoice_row['vCountry'];
-
-
-$sub_tot = $_REQUEST['subtotal'];
-$sub_tot = str_replace('€','',$sub_tot);
-$shipping_temp = str_replace('€','',$shipping_temp);
-$grand_total = str_replace('€','',$grand_total);
-
-
-$sub_tot = str_replace(chr(0xE2).chr(0x82).chr(0xAC),"",$sub_tot); 
-$shipping_temp = str_replace(chr(0xE2).chr(0x82).chr(0xAC),"",$shipping_temp); 
-$grand_total = str_replace(chr(0xE2).chr(0x82).chr(0xAC),"",$grand_total); 
-
-$invoicehtml = str_replace(array(
-	'{firstname}',
-	'{surname}',
-	'{street}', 
-	'{nr}',
-	'{zipcode}',
-	'{city}',
-	'{country}',
-	'{useremail}',
-	'{invoicenumber}',
-	'{invoicedate}',
-	'{paymentterms}',
-	'{paymentgateway}',
-	'{dynamicarea}',
-	'{subtotal}',
-	'{shiping}',
-	'{grandtotal}',
-	'{notice}'), array(
-	  $firstname,
-	  $surname,
-	  $street,
-	  $nr,
-	  $zipcode,
-	  $city,
-	  $country_html,
-	  $useremail,
-	  $invoice_number,
-	  $invoice_date_temp,
-	  $payment_term_html,
-	  $payment_type_html,
-	  $invoice_dynamic_text,
-	  $sub_tot,
-	  $shipping_temp,
-	  $grand_total,
-	  $comment), $tem_html);
-	  
-	  mysql_query("update `invoice_mst` set `invoicehtml` = '".$invoicehtml."'  WHERE `iId` = '".$nextid."' ");
-		  
-     header('location:rechnungen.php');
+          echo "<script>window.location.href='rechnungen.php';</script>";
      }
-	
-	//////////////////////////////////////////////////
-	if (isset($_REQUEST['preview'])) 
-	 {
-          $customer_id = mysql_real_escape_string($_REQUEST['customer']);
-          
-          $sql = "SELECT * FROM number_range WHERE iId = '3'";
-          $number_range = mysql_query($sql);
-          $row = mysql_fetch_assoc($number_range);
-          $prefix = $row['vPrefix'];
-          $sufix = $row['vSufix'];
-   		   
-		  $invoice_number = mysql_real_escape_string($_REQUEST['invoice_number']);
-		   
-		   ////////////
-		$sql = "SELECT * FROM invoice_mst where vInvoiceNumber = '".$invoice_number."' ";
-		$invoice = mysql_query($sql);
-		if(mysql_num_rows($invoice) > 0)
-		{
-			$row = mysql_fetch_assoc($invoice);
-			$nextid = $row['iId'];
-			$isUpdate = 1;
-		}
-		else
-		{
-			$sql = "SELECT * FROM invoice_mst ORDER BY iId DESC LIMIT 1";
-			$invoice = mysql_query($sql);
-			$row = mysql_fetch_assoc($invoice);
-			$nextid = $row['iId'] + 1;
-			$isUpdate = 0;
-		}
-		   ////////
-		       
-          $invoice_date = mysql_real_escape_string($_REQUEST['invoice_date']);
-          $invoice_date = explode("/", $invoice_date);
-		
-          if (isset($invoice_date[2]))
-		  {
-			$invoice_date_temp = $invoice_date[1].".".$invoice_date[0].".".$invoice_date[2];
-			$invoice_date = $invoice_date[2] . "-" . $invoice_date[0] . "-" . $invoice_date[1] . " 00:00:00";
-          } 
-		  else 
-		  {
-               $invoice_date = "0000-00-00 00:00:00";
-          }
-
-          $payment_term = mysql_real_escape_string($_REQUEST['payment_term']);
-          $payment_type = mysql_real_escape_string($_REQUEST['payment_type']);
-          $comment = mysql_real_escape_string($_REQUEST['comment']);
-          $shipping = mysql_real_escape_string($_REQUEST['shipping']);
-		  
-		  $shipping_temp = $shipping;
-		  
-		  $grand_total = mysql_real_escape_string($_REQUEST['grand_total']);
-		  
-		  
-          $shipping = preg_replace('/[^A-Za-z0-9 !@#$%^&*().,]/u','', strip_tags($shipping));
-          $shipping = str_replace(',', '.', $shipping);
-          $tax_id = mysql_real_escape_string($_REQUEST['tax_id']);
-          $date = date('Y-m-d H:i:s');
-          $addedby = $_SESSION['uid'];
-          
-			if($isUpdate)
-			{
-			 $invoice_add = "UPDATE invoice_mst SET `iCustomerId` = '".$customer_id."', `vInvoiceNumber` = '".$invoice_number."', `dInvoiceDate` = '".$invoice_date."', `iTermOfPayment` = '".$payment_term."', `iPayment` = '".$payment_type."', `vShipping` = '".$shipping."', `iTex` = '".$tax_id."', `tComment` = '".$comment."', `iAddedBy` = '".$addedby."', `dAddedDate` = '".$date."' where `iId` =  '".$nextid."' ";
-			}
-		  else
-		  {
-		   $invoice_add = "INSERT INTO invoice_mst (`iId`, `iCustomerId`, `vInvoiceNumber`, `dInvoiceDate`, `iTermOfPayment`, `iPayment`, `vShipping`, `iTex`, `tComment`, `iAddedBy`, `dAddedDate`) VALUES ('".$nextid."', '".$customer_id."', '".$invoice_number."', '".$invoice_date."', '".$payment_term."', '".$payment_type."', '".$shipping."', '".$tax_id."', '".$comment."', '".$addedby."', '".$date."')";
-		  }
-		  
-          mysql_query($invoice_add);
-          
-		  ////////////////////////////////////////////
-		$invoice_rs = mysql_query("SELECT * FROM `invoice_template` WHERE `templatename`='Rechnungsvorlage' ");
-		$invoice_row = mysql_fetch_assoc($invoice_rs);
-		$tem_html = $invoice_row['html'];
-		$tem_dynamic = $invoice_row['dynamic'];
-		  
-		  ////////////////////////////////////////////////////////
-		  $invoice_dynamic_text = '';
-		  $body='';
-		  $sub_tot = 0;
-		  
-           mysql_query("DELETE FROM invoice_items where `iInvoiceId` = '".$nextid."' ");
-		  
-          foreach($_REQUEST['qty'] as $key => $value)
-		  {
-               $qty = mysql_real_escape_string($value);
-               $description = mysql_real_escape_string($_REQUEST['description'][$key]);
-               $price = mysql_real_escape_string($_REQUEST['price'][$key]);
-			   
-			   $price_temp = $price;
-			   
-               $price = str_replace(',', '.', $price);
-               $date = date('Y-m-d H:i:s');
-               $item_sql = "INSERT INTO invoice_items (`iInvoiceId`, `iItemOrder`, `vQTY`, `tDescription`, `vPrice`, `iAddedBy`, `dAddedDate`) VALUES ('".$nextid."', '".($key+1)."', '".$qty."', '".$description."', '".$price."', '".$addedby."', '".$date."')";
-               mysql_query($item_sql);
-			   
-			   $p_total = $_REQUEST['price_total'][$key];
-			   
-			   $p_total = str_replace('€','',$p_total);
-			   
-				$body = str_replace(array(
-				'{position}',
-				'{description}',
-				'{unitprice}', 
-				'{qty}',
-				'{total}'), array(
-				$key+1,
-				$description,
-				$price_temp,
-				$value,
-				$p_total), $tem_dynamic);
-				
-				$invoice_dynamic_text.= $body;
-				$sub_tot += $p_total;
-			   
-          }
-		  
-$user_rs = mysql_query("SELECT * FROM user_mst WHERE iId='".$customer_id."' ");
-          $user_row = mysql_fetch_assoc($user_rs);
-			
-			$firstname = $user_row['vFname'];
-			$surname = $user_row['vLname'];
-			$street = $user_row['vRoad'];
-			$nr = $user_row['vHouseNumber'];
-			$zipcode = $user_row['vZip'];
-			$city = $user_row['vPlace'];
-			$country = $user_row['vCountry'];
-			$useremail = $user_row['vEmail'];
-
-$invoice_rs = mysql_query("SELECT * FROM `payment_term_mst` WHERE `iId` = '".$payment_term."' ");
-$invoice_row = mysql_fetch_assoc($invoice_rs);
-$payment_term_html = $invoice_row['vName'];
-
-
-$invoice_rs = mysql_query("SELECT * FROM `payment_mst` WHERE `iId` =  '".$payment_type."' ");
-$invoice_row = mysql_fetch_assoc($invoice_rs);
-$payment_type_html = $invoice_row['vPayment'];
-
-$invoice_rs = mysql_query("SELECT * FROM `country_mst` WHERE `iId` = '".$country."' ");
-$invoice_row = mysql_fetch_assoc($invoice_rs);
-$country_html = $invoice_row['vCountry'];
-
-
-$sub_tot = $_REQUEST['subtotal'];
-$sub_tot = str_replace('€','',$sub_tot);
-$shipping_temp = str_replace('€','',$shipping_temp);
-$grand_total = str_replace('€','',$grand_total);
-
-
-$sub_tot = str_replace(chr(0xE2).chr(0x82).chr(0xAC),"",$sub_tot); 
-$shipping_temp = str_replace(chr(0xE2).chr(0x82).chr(0xAC),"",$shipping_temp); 
-$grand_total = str_replace(chr(0xE2).chr(0x82).chr(0xAC),"",$grand_total); 
-
-$invoicehtml = str_replace(array(
-	'{firstname}',
-	'{surname}',
-	'{street}', 
-	'{nr}',
-	'{zipcode}',
-	'{city}',
-	'{country}',
-	'{useremail}',
-	'{invoicenumber}',
-	'{invoicedate}',
-	'{paymentterms}',
-	'{paymentgateway}',
-	'{dynamicarea}',
-	'{subtotal}',
-	'{shiping}',
-	'{grandtotal}',
-	'{notice}'), array(
-	  $firstname,
-	  $surname,
-	  $street,
-	  $nr,
-	  $zipcode,
-	  $city,
-	  $country_html,
-	  $useremail,
-	  $invoice_number,
-	  $invoice_date_temp,
-	  $payment_term_html,
-	  $payment_type_html,
-	  $invoice_dynamic_text,
-	  $sub_tot,
-	  $shipping_temp,
-	  $grand_total,
-	  $comment), $tem_html);
-	  
-	  mysql_query("update `invoice_mst` set `invoicehtml` = '".$invoicehtml."'  WHERE `iId` = '".$nextid."' ");
-		
-	$_SESSION['invoicehtml'] = $invoicehtml;  
-	
-	echo "<script> window.open('preview.php');</script>";
-	
-	echo "<script>window.location.href='rechnungen.php';</script>";
-	die;
-}
-///////////////////////////////////////////////////////////////////////////////	 	 
 ?>
 <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
@@ -871,7 +515,7 @@ $invoicehtml = str_replace(array(
                                    <div class="popup">
                                         <h3>Support</h3>
                                         <!-- Button bar -->
-                                        <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
+                                        <a class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
                                         <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
 
                                         <!-- The mail content -->
@@ -892,7 +536,7 @@ $invoicehtml = str_replace(array(
                                                             <p>M.Raab</p>
                                                             <div class="actions">
                                                                  <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                                 <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
+                                                                 <a onclick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
                                                             </div>
                                                        </div>
                                                   </li>
@@ -1109,41 +753,41 @@ $invoicehtml = str_replace(array(
                                         <p style="height:0; margin:0;" class="_100"></p>						
                                         <p class="_25">
                                              <label>Zahlungsbedingungen</label>							
-     <select style="height:150px;" data-placeholder="Bitte wählen..." name="payment_term" class="search" >
-          <option value=""></option>
-          <?php
-               $sql = "SELECT * FROM payment_term_mst ORDER BY iId DESC";
-               $payment_term = mysql_query($sql);
-               while ($row = mysql_fetch_array($payment_term)) {
-                    $selected = "";
-                    if($pyt == $row['iId']){
-                         $selected = 'selected="selected"';
-                    }
-          ?>
-                    <option value="<?=$row['iId']?>" <?=$selected?>><?=$row['vName']?></option>
-          <?php
-               }
-          ?>
-     </select>
+                                             <select style="height:150px;" data-placeholder="Bitte wählen..." name="payment_term" class="search" >
+                                                  <option value=""></option>
+                                                  <?php
+                                                       $sql = "SELECT * FROM payment_term_mst ORDER BY iId DESC";
+                                                       $payment_term = mysql_query($sql);
+                                                       while ($row = mysql_fetch_array($payment_term)) {
+                                                            $selected = "";
+                                                            if($pyt == $row['iId']){
+                                                                 $selected = 'selected="selected"';
+                                                            }
+                                                  ?>
+                                                            <option value="<?=$row['iId']?>" <?=$selected?>><?=$row['vName']?></option>
+                                                  <?php
+                                                       }
+                                                  ?>
+                                             </select>
                                         </p>
                                         <p class="_25">
-         <label>Zahlungsart</label>							
-         <select style="height:150px;" data-placeholder="Bitte wählen..." name="payment_type" class="search" >
-              <option value=""></option>
-              <?php
-                   $sql = "SELECT * FROM payment_mst ORDER BY iId DESC";
-                   $payment_mst = mysql_query($sql);
-                   while ($row = mysql_fetch_array($payment_mst)) {
-                        $selected = "";
-                        if($pymt == $row['iId']){
-                             $selected = 'selected="selected"';
-                        }
-              ?>
-                        <option value="<?=$row['iId']?>" <?=$selected?>><?=$row['vPayment']?></option>
-              <?php
-                   }
-              ?>
-         </select>
+                                             <label>Zahlungsart</label>							
+                                             <select style="height:150px;" data-placeholder="Bitte wählen..." name="payment_type" class="search" >
+                                                  <option value=""></option>
+                                                  <?php
+                                                       $sql = "SELECT * FROM payment_mst ORDER BY iId DESC";
+                                                       $payment_mst = mysql_query($sql);
+                                                       while ($row = mysql_fetch_array($payment_mst)) {
+                                                            $selected = "";
+                                                            if($pymt == $row['iId']){
+                                                                 $selected = 'selected="selected"';
+                                                            }
+                                                  ?>
+                                                            <option value="<?=$row['iId']?>" <?=$selected?>><?=$row['vPayment']?></option>
+                                                  <?php
+                                                       }
+                                                  ?>
+                                             </select>
                                         </p>
                                         <p class="_50">
                                              <label>Bemerkungen</label>							
@@ -1178,50 +822,50 @@ $invoicehtml = str_replace(array(
                                         <?php
                                              if($invid == ""){
                                         ?>
-    <span class="invoice_item" id="item_1">
-       <p class="_10">
-            <input type="text" disabled value="1" name="order[]" />
-       </p>								
-       <p class="_10">
-            <input type="text" name="qty[]" class="qty_enter" />
-       </p>
-       <p class="_50">
-            <input type="text" name="description[]" />
-       </p>
-       <p class="_10">
-            <input type="text" name="price[]" class="price_enter" />
-       </p>
-       <p class="_20">
-            <input style="text-align:right;" class="price_total" name="price_total[]" type="text" readonly="readonly" value="0€" />
-       </p>
-    </span>
+                                                  <span class="invoice_item" id="item_1">
+                                                       <p class="_10">
+                                                            <input type="text" disabled value="1" name="order[]" />
+                                                       </p>								
+                                                       <p class="_10">
+                                                            <input type="text" name="qty[]" class="qty_enter" />
+                                                       </p>
+                                                       <p class="_50">
+                                                            <input type="text" name="description[]" />
+                                                       </p>
+                                                       <p class="_10">
+                                                            <input type="text" name="price[]" class="price_enter" />
+                                                       </p>
+                                                       <p class="_20">
+                                                            <input style="text-align:right;" class="price_total" type="text" disabled value="0€" />
+                                                       </p>
+                                                  </span>
                                         <?php
-			} else {
-			$invoice_items = "SELECT * FROM invoice_items WHERE iInvoiceId='".$invid."';";
-			$items = mysql_query($invoice_items);
-			while($item = mysql_fetch_assoc($items)){
-			$qty = $item['vQTY'];
-			$price = $item['vPrice'];
-			$desc = $item['tDescription'];
-			$iItemOrder = $item['iItemOrder'];
+                                             } else {
+                                                  $invoice_items = "SELECT * FROM invoice_items WHERE iInvoiceId='".$invid."';";
+                                                  $items = mysql_query($invoice_items);
+                                                  while($item = mysql_fetch_assoc($items)){
+                                                       $qty = $item['vQTY'];
+                                                       $price = $item['vPrice'];
+                                                       $desc = $item['tDescription'];
+                                                       $iItemOrder = $item['iItemOrder'];
                                         ?>
-           <span class="invoice_item" id="item_<?=$iItemOrder?>">
-                <p class="_10">
-                     <input type="text" disabled value="<?=$iItemOrder?>" name="order[]" />
-                </p>								
-                <p class="_10">
-                     <input type="text" name="qty[]" class="qty_enter" value="<?=$qty?>" />
-                </p>
-                <p class="_50">
-                     <input type="text" name="description[]" value="<?=$desc?>" />
-                </p>
-                <p class="_10">
-                     <input type="text" name="price[]" class="price_enter" value="<?=$price?>" />
-                </p>
-                <p class="_20">
-                     <input style="text-align:right;" class="price_total" name="price_total[]" type="text" readonly value="0€" />
-                </p>
-           </span>
+                                                       <span class="invoice_item" id="item_<?=$iItemOrder?>">
+                                                            <p class="_10">
+                                                                 <input type="text" disabled value="<?=$iItemOrder?>" name="order[]" />
+                                                            </p>								
+                                                            <p class="_10">
+                                                                 <input type="text" name="qty[]" class="qty_enter" value="<?=$qty?>" />
+                                                            </p>
+                                                            <p class="_50">
+                                                                 <input type="text" name="description[]" value="<?=$desc?>" />
+                                                            </p>
+                                                            <p class="_10">
+                                                                 <input type="text" name="price[]" class="price_enter" value="<?=$price?>" />
+                                                            </p>
+                                                            <p class="_20">
+                                                                 <input style="text-align:right;" class="price_total" type="text" disabled value="0€" />
+                                                            </p>
+                                                       </span>
                                         <?php
                                                   }
                                              }
@@ -1236,17 +880,17 @@ $invoicehtml = str_replace(array(
                                              Zwischensumme
                                         </p>
                                         <p class="_20">
-            <input style="text-align:right;" type="text" class="subtotal" name="subtotal" readonly value="0€" />
+                                             <input style="text-align:right;" type="text" class="subtotal" disabled value="0€" />
                                         </p>
                                         <!-- Shipping -->	
-                                        <p class="_10">&nbsp;
-                                             
+                                        <p class="_10">
+                                             &nbsp;
                                         </p>								
-                                        <p class="_10">&nbsp;
-                                             
+                                        <p class="_10">
+                                             &nbsp;
                                         </p>
-                                        <p class="_40">&nbsp;
-                                             
+                                        <p class="_40">
+                                             &nbsp;
                                         </p>
                                         <p style="text-align:right; font-weight:bold; font-size:120%;" class="_20">
                                              Versandkosten
@@ -1255,14 +899,14 @@ $invoicehtml = str_replace(array(
                                              <input style="text-align:right;" type="text" name="shipping" class="shipping"  value="<?=$shipping?>€" />
                                         </p>							
                                         <!-- TAX -->
-                                        <p class="_10">&nbsp;
-                                             
+                                        <p class="_10">
+                                             &nbsp;
                                         </p>								
-                                        <p class="_10">&nbsp;
-                                             
+                                        <p class="_10">
+                                             &nbsp;
                                         </p>
-                                        <p class="_40">&nbsp;
-                                             
+                                        <p class="_40">
+                                             &nbsp;
                                         </p>
                                         <p style="text-align:right; font-weight:bold; font-size:120%;" class="_20">
                                              MwSt.
@@ -1288,20 +932,20 @@ $invoicehtml = str_replace(array(
                                              </select>
                                         </p>
                                         <!-- TOAL -->	
-                                        <p class="_10">&nbsp;
-                                             
+                                        <p class="_10">
+                                             &nbsp;
                                         </p>								
-                                        <p class="_10">&nbsp;
-                                             
+                                        <p class="_10">
+                                             &nbsp;
                                         </p>
-                                        <p class="_40">&nbsp;
-                                             
+                                        <p class="_40">
+                                             &nbsp;
                                         </p>
                                         <p style="text-align:right; font-weight:bold; font-size:120%;" class="_20">
                                              Gesamtsumme
                                         </p>
                                         <p class="_20">
-    <input style="text-align:right; background-color:lightgreen;" type="text" class="grand_total" name="grand_total" readonly="readonly" value="0€" />
+                                             <input style="text-align:right; background-color:lightgreen;" type="text" class="grand_total" name="grand_total" disabled value="0€" />
                                         </p>							
                                    </div>
 
@@ -1310,7 +954,7 @@ $invoicehtml = str_replace(array(
                                              <input type="reset" value="Eingaben löschen" />
                                         </div>
                                         <div class="right">
-                                             <input type="submit" value="Vorschau" name="preview" />
+                                             <input type="submit" value="Vorschau" name="send" />
                                              <input type="submit" value="Speichern" name="send" />
                                              <input type="submit" value="Speichern und senden" name="send" />
                                         </div>
@@ -1357,7 +1001,7 @@ $invoicehtml = str_replace(array(
                                         '<input type="text" name="price[]" class="price_enter" />'+
                                    '</p>'+
                                    '<p class="_20">'+
-                   '<input style="text-align:right;" type="text" class="price_total" name="price_total[]" readonly value="0€" />'+
+                                        '<input style="text-align:right;" type="text" class="price_total" disabled value="0€" />'+
                                    '</p>'+
                               '</span>';
                     $(".invoice_item:last").after(html);
