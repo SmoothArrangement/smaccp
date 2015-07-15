@@ -450,7 +450,7 @@
                             <h3>Support</h3>
 
                             <!-- Button bar -->
-                            <a class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
+                            <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
                             <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
 
                             <!-- The mail content -->
@@ -472,7 +472,7 @@
                                             <p>M.Raab</p>
                                             <div class="actions">
                                                 <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                <a onclick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
+                                                <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
                                             </div>
                                         </div>
                                     </li>
@@ -566,7 +566,11 @@
                         <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
 
                         <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge">25</span></a>
+                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
+	$sql = "SELECT * FROM `user_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice)-1;
+?></span></a>
                             <ul>
                                 <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
                                 <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
@@ -574,7 +578,12 @@
                         </li>
 
                         <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge">46</span></a>
+                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
+	$sql = "SELECT * FROM `invoice_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice);
+?>
+</span></a>
                             <ul>
                                 <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
                                 <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
@@ -582,7 +591,12 @@
                         </li>
 						
                         <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">15</span></a>
+                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+<?php
+	$sql = "SELECT * FROM `offer_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice);
+?></span></a>
                             <ul>
                                 <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
                                 <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
@@ -691,80 +705,7 @@
 					
 				</div><!-- End of .box -->
 			</div><!-- End of .grid_12 -->
-<div class="grid_6"><div class="box">
-<div class="header"><h2>Mahnlauf</h2></div>
-<div class="content">
-	<table class="styled">
-		<colgroup>
-			<col span="1">
-			<col span="1">
-			<col span="1">
-		</colgroup>
-
-	<thead>
-		<tr>
-			<th>Mahnstufe</th>
-			<th>Tage</th>
-			<th>Speichern</th>
-		</tr>
-	</thead>
-	<tbody>
-         <?php
-            $sql = "SELECT * FROM dunning";
-            $dunning = mysql_query($sql);
-            while($row = mysql_fetch_assoc($dunning)){
-        ?>
-        <tr data_id="<?=$row['iId']?>">
-            <td><?=$row['mahnstufe']?></td>
-            <td contenteditable class="prefix"><?=$row['tage']?></td>
-            <td class="center"><a href="#" class="button small grey tooltip save_tage" data-gravity=s title="Speichern"><i class="icon-save"></i></a></td>
-        </tr>
-        <?php
-             }
-        ?>
-	</tbody>
-	</table>
-</div><!-- End of .content -->
-</div><!-- End of .box -->
-</div><!-- End of .grid_12 -->	
-<div class="grid_6"><div class="box">
-<div class="header"><h2>Angebotsdauer</h2></div>
-<div class="content">
-	<table class="styled">
-		<colgroup>
-			<col span="1">
-			<col span="1">
-			<col span="1">
-		</colgroup>
-
-	<thead>
-		<tr>
-			<th>Status</th>
-			<th>Tage</th>
-			<th>Speichern</th>
-		</tr>
-	</thead>
-	<tbody>
-         <?php
-            $sql = "SELECT * FROM offer";
-            $offer = mysql_query($sql);
-            while($row = mysql_fetch_assoc($offer)){
-        ?>
-        <tr data_id="<?=$row['iId']?>">
-            <td><?=$row['angebotstyp']?></td>
-            <td contenteditable class="prefix"><?=$row['tage']?></td>
-            <td class="center"><a href="#" class="button small grey tooltip save_tage" data-gravity=s title="Speichern"><i class="icon-save"></i></a></td>
-        </tr>
-        <?php
-             }
-        ?>
-	</tbody>
-	</table>
-</div><!-- End of .content -->
-</div><!-- End of .box -->
-</div><!-- End of .grid_12 -->
-			<div class="grid_12 clearfix"></div>			
-			<div class="grid_4">
+			<div class="grid_3">
 				<div class="box">
 				
 					<div class="header">
@@ -807,9 +748,8 @@
 					</div><!-- End of .content -->
 					
 				</div><!-- End of .box -->
-				
 			</div><!-- End of .grid_12 -->
-			<div class="grid_4">
+			<div class="grid_3">
 				<div class="box">
 				
 					<div class="header">
@@ -854,7 +794,7 @@
 					
 				</div><!-- End of .box -->
 			</div><!-- End of .grid_12 -->			
-			<div class="grid_4">
+			<div class="grid_6">
 				<div class="box">
 				
 					<div class="header">
@@ -1073,7 +1013,7 @@
                          url: "ajax_save.php",
                          data: { type: 'save_nr', id: id, prefix: prefix, sufix: sufix, nextnumber: nextnumber }
                     }).done(function() {});
-               });   
+               });
                $('.new_solution').live('click', function(e){
                     e.preventDefault();
                     $.ajax({

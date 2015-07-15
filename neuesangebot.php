@@ -978,7 +978,11 @@ $invoicehtml = str_replace(array(
                                    <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
 
                                    <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge">25</span></a>
+                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
+	$sql = "SELECT * FROM `user_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice)-1;
+?></span></a>
                                         <ul>
                                              <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
                                              <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
@@ -986,7 +990,12 @@ $invoicehtml = str_replace(array(
                                    </li>
 
     <li>
-    <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge">46</span></a>
+    <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
+	$sql = "SELECT * FROM `invoice_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice);
+?>
+</span></a>
     <ul style="display:none">
     <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
     <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
@@ -994,7 +1003,12 @@ $invoicehtml = str_replace(array(
     </li>
 
     <li class="current">
-    <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">15</span></a>
+    <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+<?php
+	$sql = "SELECT * FROM `offer_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice);
+?></span></a>
     <ul style="display:block">
     <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
     <li class="current"><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>

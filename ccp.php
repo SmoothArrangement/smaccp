@@ -463,7 +463,7 @@
                             <h3>Support</h3>
 
                             <!-- Button bar -->
-                            <a class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
+                            <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
                             <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
 
                             <!-- The mail content -->
@@ -485,7 +485,7 @@
                                             <p>M.Raab</p>
                                             <div class="actions">
                                                 <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                <a onclick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
+                                                <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
                                             </div>
                                         </div>
                                     </li>
@@ -577,7 +577,11 @@
                         <li class="current"><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
 
                         <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge">25</span></a>
+                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
+	$sql = "SELECT * FROM `user_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice)-1;
+?></span></a>
                             <ul>
                                 <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
                                 <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
@@ -585,7 +589,12 @@
                         </li>
 
                         <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge">46</span></a>
+                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
+	$sql = "SELECT * FROM `invoice_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice);
+?>
+</span></a>
                             <ul>
                                 <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
                                 <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
@@ -593,7 +602,12 @@
                         </li>
 						
                         <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">15</span></a>
+                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+<?php
+	$sql = "SELECT * FROM `offer_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice);
+?></span></a>
                             <ul>
                                 <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
                                 <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>

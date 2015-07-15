@@ -967,67 +967,85 @@ $invoicehtml = str_replace(array(
 
                <!-- The sidebar -->
                <aside>
-                    <div class="top">
+<div class="top">
 
 
-                         <!-- Navigation -->
-                         <nav><ul class="collapsible accordion">
+<!-- Navigation -->
+<nav><ul class="collapsible accordion">
 
-                                   <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
+<li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
 
-                                   <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge">25</span></a>
-                                        <ul>
-                                             <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
-                                             <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
-                                        </ul>
-                                   </li>
+<li>
+<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge">
+<?php
+	$sql = "SELECT * FROM `user_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice)-1;
+?>
+</span></a>
+<ul>
+<li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
+<li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
+</ul>
+</li>
 
-                                   <li class="current">
-                                        <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge">46</span></a>
-                                        <ul>
-                                             <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
-                                             <li class="current"><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
-                                        </ul>
-                                   </li>
+<li class="current">
+<a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge">
+<?php
+	$sql = "SELECT * FROM `invoice_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice);
+?>
+</span></a>
+<ul>
+<li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
+<li class="current"><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
+</ul>
+</li>
 
-                                   <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">15</span></a>
-                                        <ul>
-                                             <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
-                                             <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
-                                        </ul>
-                                   </li>						
+<li>
+<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+<?php
+	$sql = "SELECT * FROM `offer_mst` ";
+	$invoice = mysql_query($sql);
+	echo mysql_num_rows($invoice);
+?>
+</span></a>
+<ul>
+<li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
+<li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
+</ul>
+</li>						
 
-                                   <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/gear.png" alt="" height=16 width=16>Einstellungen</span></a>
-                                        <ul>
-                                             <li><a href="formate.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/table-draw.png" alt="" height=16 width=16></span>Formate</a></li>
-                                        </ul>
-                                   </li>
+<li>
+<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/gear.png" alt="" height=16 width=16>Einstellungen</span></a>
+<ul>
+<li><a href="formate.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/table-draw.png" alt="" height=16 width=16></span>Formate</a></li>
+</ul>
+</li>
 
-                                   <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/blue-document-office-text.png" alt="" height=16 width=16>Vorlagen</a>
-                                        <ul>
-                                             <li><a href="rechnungsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-pdf-text.png" alt="" height=16 width=16></span>Rechnungsvorlage</a></li>
-                                             <li><a href="angebotsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-excel-table.png" alt="" height=16 width=16></span>Angebotsvorlage</a></li>
-                                             <li><a href="emailvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-send-receive.png" alt="" height=16 width=16></span>E-Mail Vorlagen</a></li>
-                                        </ul>
-                                   </li>
+<li>
+<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/blue-document-office-text.png" alt="" height=16 width=16>Vorlagen</a>
+<ul>
+<li><a href="rechnungsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-pdf-text.png" alt="" height=16 width=16></span>Rechnungsvorlage</a></li>
+<li><a href="angebotsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-excel-table.png" alt="" height=16 width=16></span>Angebotsvorlage</a></li>
+<li><a href="emailvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-send-receive.png" alt="" height=16 width=16></span>E-Mail Vorlagen</a></li>
+</ul>
+</li>
 
-                                   <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/question.png" alt="" height=16 width=16>Ticketsystem</a>
-                                        <ul>
-                                             <li><a href="alletickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mails-stack.png" alt="" height=16 width=16></span>Alle Tickets</a></li>
-                                             <li><a href="neuesticket.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail--plus.png" alt="" height=16 width=16></span>Neues Ticket</a></li>
-                                             <li><a href="offenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-open.png" alt="" height=16 width=16></span>Offene Tickets</a></li>
-                                             <li><a href="geschlossenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail.png" alt="" height=16 width=16></span>Geschlossene Tickets</a></li>
-                                        </ul>
-                                   </li>
+<li>
+<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/question.png" alt="" height=16 width=16>Ticketsystem</a>
+<ul>
+<li><a href="alletickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mails-stack.png" alt="" height=16 width=16></span>Alle Tickets</a></li>
+<li><a href="neuesticket.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail--plus.png" alt="" height=16 width=16></span>Neues Ticket</a></li>
+<li><a href="offenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-open.png" alt="" height=16 width=16></span>Offene Tickets</a></li>
+<li><a href="geschlossenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail.png" alt="" height=16 width=16></span>Geschlossene Tickets</a></li>
+</ul>
+</li>
 
-                              </ul></nav><!-- End of nav -->
+</ul></nav><!-- End of nav -->
 
-                    </div><!-- End of .top -->
+</div><!-- End of .top -->
 
                     <div class="bottom sticky">
                          <div class="divider"></div>
@@ -1401,14 +1419,16 @@ $invoicehtml = str_replace(array(
                     var subtotal = 0;
                     $('.qty_enter').each(function(){
                          var qty = $(this).val().replace(/\D/g,'');
+					  // var qty = $(this).val();
                          if(qty === ""){
                               qty = 0;
                          }
-                         qty = parseInt(qty);
+                        // qty = parseInt(qty);
                          $(this).val(qty);
                          
-                         var price = $(this).parent('p').parent('.invoice_item').find('.price_enter').val().replace(/[^0-9\.,]+/g,'');
-                         if(price === ""){
+             //    var price = $(this).parent('p').parent('.invoice_item').find('.price_enter').val().replace(/[^0-9\.,]+/g,'');
+                   var price = $(this).parent('p').parent('.invoice_item').find('.price_enter').val();
+				         if(price === ""){
                               price = 0;
                          }
                          price = price.replace(",", ".");

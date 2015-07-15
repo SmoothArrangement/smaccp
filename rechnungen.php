@@ -451,7 +451,7 @@ $invoice = mysql_query($sql);
                                         <h3>Support</h3>
 
                                         <!-- Button bar -->
-                                        <a class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
+                                        <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
                                         <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
 
                                         <!-- The mail content -->
@@ -472,7 +472,7 @@ $invoice = mysql_query($sql);
                                                             <p>M.Raab</p>
                                                             <div class="actions">
                                                                  <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                                 <a onclick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
+                                                                 <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
                                                             </div>
                                                        </div>
                                                   </li>
@@ -557,7 +557,11 @@ $invoice = mysql_query($sql);
                                    <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
 
                                    <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge">25</span></a>
+                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
+	$sql = "SELECT * FROM `user_mst` ";
+	$invoice1 = mysql_query($sql);
+	echo mysql_num_rows($invoice1)-1;
+?></span></a>
                                         <ul>
                                              <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
                                              <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
@@ -565,7 +569,12 @@ $invoice = mysql_query($sql);
                                    </li>
 
                                    <li class="current">
-                                        <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge">46</span></a>
+                                        <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
+	$sql = "SELECT * FROM `invoice_mst` ";
+	$invoice1 = mysql_query($sql);
+	echo mysql_num_rows($invoice1);
+?>
+</span></a>
                                         <ul>
                                              <li class="current"><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
                                              <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
@@ -573,7 +582,12 @@ $invoice = mysql_query($sql);
                                    </li>
 
                                    <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">15</span></a>
+                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+<?php
+	$sql = "SELECT * FROM `offer_mst` ";
+	$invoice1 = mysql_query($sql);
+	echo mysql_num_rows($invoice1);
+?></span></a>
                                         <ul>
                                              <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
                                              <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
@@ -651,41 +665,43 @@ $invoice = mysql_query($sql);
                                              </tr>
                                         </thead>
                                         <tbody>
-                                             <?php
-                                                  while($row = mysql_fetch_assoc($invoice)){
-                                                       $invoice_items = "SELECT * FROM invoice_items WHERE iInvoiceId='".$row['iId']."';";
-                                                       $items = mysql_query($invoice_items);
-                                                       $subtotal = 0;
-                                                       while($item = mysql_fetch_assoc($items)){
-                                                            $subtotal = $subtotal + ($item['vQTY'] * $item['vPrice']);
-                                                       }
-                                                       if(isset($row['vVat']) && $row['vVat'] != ""){
-                                                            $vat = $row['vVat'];
-                                                            $grandtotal = ($subtotal * $vat) / 100;
-                                                            $grandtotal = $grandtotal + $subtotal;
-                                                            $grandtotal = $grandtotal + $row['vShipping'];
-                                                       } else {
-                                                            $grandtotal = $subtotal + $row['vShipping'];
-                                                       }
+			 <?php
+                  while($row = mysql_fetch_assoc($invoice)){
+                       $invoice_items = "SELECT * FROM invoice_items WHERE iInvoiceId='".$row['iId']."';";
+                       $items = mysql_query($invoice_items);
+                       $subtotal = 0;
+                       while($item = mysql_fetch_assoc($items)){
+                            $subtotal = $subtotal + ($item['vQTY'] * $item['vPrice']);
+                       }
+                       if(isset($row['vVat']) && $row['vVat'] != ""){
+                            $vat = $row['vVat'];
+                            $grandtotal = ($subtotal * $vat) / 100;
+                            $grandtotal = $grandtotal + $subtotal;
+                            $grandtotal = $grandtotal + $row['vShipping'];
+                       } else {
+                            $grandtotal = $subtotal + $row['vShipping'];
+                       }
                                              ?>
-                                                       <tr>
-                                                            <td class="center"><?=$row['vInvoiceNumber']?></td>
-                                                            <td class="center"><?=$row['vCustomerNumber']?></td>
-                                                            <td class="center"><?=$row['vFname'].' '.$row['vLname']?></td>
-                                                            <td class="center"><?=number_format((float)$grandtotal, 2, ',', '')?>€</td>
-                                                            <td class="center">
-                                                                 <select name="ord_status" class="ord_status" data-id="<?=$row['iId']?>">
-                                                                      <option value="0" <?php if($row['iStatus'] == '0'){echo 'selected';}?>>Offen</option> 
-                                                                      <option value="1" <?php if($row['iStatus'] == '1'){echo 'selected';}?>>Bezahlt</option> 
-                                                                      <option value="2" <?php if($row['iStatus'] == '2'){echo 'selected';}?>>Mahnlauf aussetzen</option> 
-                                                                      <option value="3" <?php if($row['iStatus'] == '3'){echo 'selected';}?>>Inkasso</option> 
-                                                                 </select>
+               <tr>
+                    <td class="center"><?=$row['vInvoiceNumber']?></td>
+                    <td class="center"><?=$row['vCustomerNumber']?></td>
+                    <td class="center"><?=$row['vFname'].' '.$row['vLname']?></td>
+                    <td class="center"><?=number_format((float)$grandtotal, 2, ',', '')?>€</td>
+                    <td class="center">
+             <select name="ord_status" class="ord_status" data-id="<?=$row['iId']?>">
+                  <option value="0" <?php if($row['iStatus'] == '0'){echo 'selected';}?>>Offen</option> 
+                  <option value="1" <?php if($row['iStatus'] == '1'){echo 'selected';}?>>Bezahlt</option> 
+                  <option value="2" <?php if($row['iStatus'] == '2'){echo 'selected';}?>>Mahnlauf aussetzen</option> 
+                  <option value="3" <?php if($row['iStatus'] == '3'){echo 'selected';}?>>Inkasso</option> 
+             </select>
                                                             </td>
-                                                            <td class="center">
-                                                                 <a title="Eintrag löschen" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/cross-script.png" alt="" height=16 width=16 /></span></a>
-                                                                 <a title="Eintrag bearbeiten" href="neuerechnung.php?invid=<?=$row['iId']?>"><span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="" height=16 width=16 /></span></a>
-                                                                 <a title="Eintrag ansehen" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="" height=16 width=16 /></span></a>
-                                                            </td>
+<td class="center">
+<?php
+if($grandtotal > 0) { ?> 
+<a title="Eintrag löschen" href="copy_invoice.php?id=<?php echo $row['iId']; ?>"><span class="icon"><img src="img/icons/packs/fugue/16x16/cross-script.png" alt="" height=16 width=16 /></span></a> <?php } ?>
+<a title="Eintrag bearbeiten" href="neuerechnung.php?invid=<?=$row['iId']?>"><span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="" height=16 width=16 /></span></a>
+<a title="Eintrag ansehen" href="view_invoice.php?id=<?php echo $row['iId']; ?>" target="_blank"><span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="" height=16 width=16 /></span></a>
+</td>
                                                        </tr>
                                              <?php
                                                   }

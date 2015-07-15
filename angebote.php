@@ -558,7 +558,11 @@ $invoice = mysql_query($sql);
                                    <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
 
                                    <li>
-                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge">25</span></a>
+                                        <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
+	$sql = "SELECT * FROM `user_mst` ";
+	$invoice1 = mysql_query($sql);
+	echo mysql_num_rows($invoice1)-1;
+?></span></a>
                                         <ul>
                                              <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
                                              <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
@@ -566,7 +570,12 @@ $invoice = mysql_query($sql);
                                    </li>
 
                                    <li>
-<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge">46</span></a>
+<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
+	$sql = "SELECT * FROM `invoice_mst` ";
+	$invoice1 = mysql_query($sql);
+	echo mysql_num_rows($invoice1);
+?>
+</span></a>
 <ul>
 <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
 <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
@@ -574,7 +583,12 @@ $invoice = mysql_query($sql);
                                    </li>
 
                                     <li class="current">
-<a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">15</span></a>
+<a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+<?php
+	$sql = "SELECT * FROM `offer_mst` ";
+	$invoice1 = mysql_query($sql);
+	echo mysql_num_rows($invoice1);
+?></span></a>
 <ul>
  <li class="current"><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
  <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
@@ -683,9 +697,9 @@ $invoice = mysql_query($sql);
                  </select>
                                                             </td>
 <td class="center">
-<a title="Eintrag löschen" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/cross-script.png" alt="" height=16 width=16 /></span></a>
+<a title="Eintrag löschen" onClick="return confirm('Möchten Sie dieses Angebot wirklich löschen?');" href="delete_offer.php?id=<?php echo $row['iId']; ?>"><span class="icon"><img src="img/icons/packs/fugue/16x16/cross-script.png" alt="" height=16 width=16 /></span></a>
 <a title="Eintrag bearbeiten" href="neuesangebot.php?invid=<?=$row['iId']?>"><span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="" height=16 width=16 /></span></a>
-<a title="Eintrag ansehen" href="#"><span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="" height=16 width=16 /></span></a>
+<a title="Eintrag ansehen" href="view_offer.php?id=<?php echo $row['iId']; ?>" target="_blank"><span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="" height=16 width=16 /></span></a>
 </td>
                                                        </tr>
                                              <?php
