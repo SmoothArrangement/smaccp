@@ -671,7 +671,7 @@
 						<h2>Rechnungsvorlage (HTML)</h2>
 					</div>
 					<div class="content">
-						<textarea id="textarea_html" class="editor full"> <?php echo $data["html"] ?> </textarea>
+						<textarea style="width:100%;" id="textarea_html"> <?php echo $data["html"] ?> </textarea>
 					</div>
 				</form>
 			</div><!-- End of .grid_12 -->
@@ -681,11 +681,11 @@
 						<h2>Dynamischer Berreich (HTML)</h2>
 					</div>
 					<div class="content">
-						<textarea id="textarea_dynamic" class="editor full"> <?php echo $data["dynamic"] ?> </textarea>
+						<textarea style="width:100%;" id="textarea_dynamic"> <?php echo $data["dynamic"] ?> </textarea>
 					</div>
 				</form>
 			</div><!-- End of .grid_12 -->
-			<div class="grid_12">
+ <div class="grid_12">
 				<form action="" class="box">
 					<div class="header">
 						<h2>Rechnungsvorlage (CSS)</h2>
@@ -704,7 +704,7 @@
 
 						</div>
 					</div>					
-			</div><!-- End of .grid_12 -->
+			</div>
 <!-- 			<ul class="stats not-on-phone">
 				<li>
 					<strong>61263</strong>

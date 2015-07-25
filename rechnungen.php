@@ -701,6 +701,7 @@ if($grandtotal > 0) { ?>
 <a title="Eintrag löschen" href="copy_invoice.php?id=<?php echo $row['iId']; ?>"><span class="icon"><img src="img/icons/packs/fugue/16x16/cross-script.png" alt="" height=16 width=16 /></span></a> <?php } ?>
 <a title="Eintrag bearbeiten" href="neuerechnung.php?invid=<?=$row['iId']?>"><span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="" height=16 width=16 /></span></a>
 <a title="Eintrag ansehen" href="view_invoice.php?id=<?php echo $row['iId']; ?>" target="_blank"><span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="" height=16 width=16 /></span></a>
+<a title="Eintrag ansehen" href="download_invoice.php?id=<?php echo $row['iId']; ?>" target="_blank"><span class="icon"><img src="img/icons/packs/fugue/16x16/disc.png" alt="" height=16 width=16 /></span></a>
 </td>
                                                        </tr>
                                              <?php
