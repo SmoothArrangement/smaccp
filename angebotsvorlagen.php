@@ -671,7 +671,7 @@
 						<h2>Angebotsvorlage (HTML)</h2>
 					</div>
 					<div class="content">
-						<textarea id="textarea_html" class="editor full"> <?php echo $data["html"] ?> </textarea>
+						<textarea id="textarea_html" style="width:100%;"> <?php echo $data["html"] ?> </textarea>
 					</div>
 				</form>
 			</div><!-- End of .grid_12 -->
@@ -681,7 +681,7 @@
 						<h2>Dynamischer Berreich (HTML)</h2>
 					</div>
 					<div class="content">
-						<textarea id="textarea_dynamic" class="editor full"> <?php echo $data["dynamic"] ?> </textarea>
+						<textarea id="textarea_dynamic" style="width:100%;"> <?php echo $data["dynamic"] ?> </textarea>
 					</div>
 				</form>
 			</div><!-- End of .grid_12 -->
