@@ -661,7 +661,32 @@
             </div><!-- End of .bottom -->
 
         </aside><!-- End of sidebar -->
-<?php } ?>
+        <?php } else if ($userData['vUserType'] == 2) {
+            ?>
+
+            <aside>
+                <div class="top">
+
+
+                    <!-- Navigation -->
+                    <nav><ul class="collapsible accordion">
+                            <li>
+                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/question.png" alt="" height=16 width=16>Ticketsystem</a>
+                                <ul>
+                                    <li><a href="neuesticket.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail--plus.png" alt="" height=16 width=16></span>Neues Ticket</a></li>
+                                    <li><a href="offenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-open.png" alt="" height=16 width=16></span>Offene Tickets</a></li>
+                                    <li><a href="geschlossenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail.png" alt="" height=16 width=16></span>Geschlossene Tickets</a></li>
+                                </ul>
+                            </li>
+
+                        </ul></nav><!-- End of nav -->
+
+                </div><!-- End of .top -->
+
+            </aside><!-- End of sidebar -->   
+
+        <?php }
+        ?>
         <!-- Here goes the content. -->
         <section id="content" class="container_12 clearfix" data-sort=true>
 <!-- 			<ul class="stats not-on-phone">

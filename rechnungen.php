@@ -4,6 +4,11 @@ include("include/language.php");
 if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")) {
      header("location:index.php");
 }
+if ((!isset($_SESSION['utype']) || $_SESSION['utype'] != "1")) {
+     if ($_SESSION['utype'] != "3") {
+         echo "<script type='text/javascript'>window.top.location='offenetickets.php';</script>";
+     }
+}
 $sql = "SELECT invc.*, usr.vFname, usr.vLname, usr.vCustomerNumber, tax.vVat FROM invoice_mst as invc
              LEFT JOIN user_mst as usr ON usr.iId = invc.iCustomerId
              LEFT JOIN tax_rate as tax ON tax.iId = invc.iTex

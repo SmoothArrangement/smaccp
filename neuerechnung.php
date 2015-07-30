@@ -2,11 +2,14 @@
 ob_start();
      include('include/connection.php');
      include("include/language.php");
-     if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == ""))
-	 {
+     if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")) {
           header("location:index.php");
      }
-     
+     if ((!isset($_SESSION['utype']) || $_SESSION['utype'] != "1")) {
+          if ($_SESSION['utype'] != "3") {
+              echo "<script type='text/javascript'>window.top.location='offenetickets.php';</script>";
+          }
+     }
 	 if(isset($_REQUEST['invid']) && $_REQUEST['invid'] != "")
 	 {
           $invid = $_REQUEST['invid'];

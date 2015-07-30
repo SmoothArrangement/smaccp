@@ -4,6 +4,11 @@
      if((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")){
           header("location:index.php");
      }
+     if ((!isset($_SESSION['utype']) || $_SESSION['utype'] != "1")) {
+          if ($_SESSION['utype'] != "3") {
+              echo "<script type='text/javascript'>window.top.location='offenetickets.php';</script>";
+          }
+     }
 	$id = $_SESSION['uid'];
 	$query = "SELECT * FROM user_mst WHERE iId='".$id."'" ;
 	$userData = mysql_query($query);

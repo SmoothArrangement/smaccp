@@ -5,15 +5,16 @@ include("include/language.php");
 if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")) {
      header("location:index.php");
 }
+if ((!isset($_SESSION['utype']) || $_SESSION['utype'] != "1")) {
+     if ($_SESSION['utype'] != "3") {
+         echo "<script type='text/javascript'>window.top.location='offenetickets.php';</script>";
+     }
+}
 $sql = "SELECT invc.*, usr.vFname, usr.vLname, usr.vCustomerNumber, tax.vVat FROM offer_mst as invc
              LEFT JOIN user_mst as usr ON usr.iId = invc.iCustomerId
              LEFT JOIN tax_rate as tax ON tax.iId = invc.iTex
              ORDER BY invc.iId DESC";
 $invoice = mysql_query($sql);
-/* $invoice = mysql_fetch_assoc($invoice);
-  echo "<pre>";
-  print_r($invoice);
-  exit; */
 ?>
 <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
