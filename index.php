@@ -12,6 +12,8 @@
           $email = $_REQUEST['email'];
           $checkemail = "SELECT * FROM user_mst WHERE vEmail='".$email."'";
           $emailresult = mysql_query($checkemail);
+          setcookie("username",$email,time()-10);
+          setcookie("password",$pass,time()-10);
           if(mysql_num_rows($emailresult) == 0){
                $emsg = "This e-mail address is unknown. Please join first.";   
           } else {
@@ -50,6 +52,7 @@
                 
                 $headers .= 'From: CCP <'.$template['vSender'].'>' . "\r\n";
                 $sub = $template['vSubject'];
+                $sub = str_replace("{zeitstempel}", date('d.m.Y').' um '.date('H.i').' Uhr ', $sub);
                 mail($email, $sub, $html, $headers);
           }
      }
@@ -85,6 +88,8 @@
                     echo "<script type='text/javascript'>window.top.location='ccp.php';</script>";
                }
           } else {
+               setcookie("username",$email,time()-10);
+               setcookie("password",$pass,time()-10);
                $emsg = "Invalid credentials.";
           }
      }

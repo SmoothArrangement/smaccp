@@ -1,14 +1,49 @@
 <?php
-     include('include/connection.php');
-     include("include/language.php");
-     if((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")){
-          header("location:index.php");
-     }
-     if ((!isset($_SESSION['utype']) || $_SESSION['utype'] != "1")) {
-          if ($_SESSION['utype'] != "3") {
-              echo "<script type='text/javascript'>window.top.location='offenetickets.php';</script>";
-          }
-     }
+include('include/connection.php');
+include("include/language.php");
+if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")) {
+    header("location:index.php");
+}
+if ((!isset($_SESSION['utype']) || $_SESSION['utype'] != "1")) {
+    if ($_SESSION['utype'] != "3") {
+        echo "<script type='text/javascript'>window.top.location='offenetickets.php';</script>";
+    }
+}
+$userData = NULL;
+if (isset($_SESSION['uid'])) {
+    $id = $_SESSION['uid'];
+    $query = "SELECT * FROM user_mst WHERE iId='" . $id . "'";
+    $userData = mysql_query($query);
+    $userData = mysql_fetch_assoc($userData);
+}
+$select = "SELECT tm.*,um1.vFname as sendfname,um1.vLname as sendlname,um2.vFname as recfname,um2.vLname as reclname FROM ticket_mst tm
+               LEFT JOIN user_mst um1 ON tm.iSenderId=um1.iId
+               LEFT JOIN user_mst um2 ON tm.iReceiverId=um2.iId WHERE tm.iReceiverId='" . $_SESSION['uid'] . "' OR tm.iSenderId='" . $_SESSION['uid'] . "' ORDER BY tCreateDate DESC";
+$result = mysql_query($select);
+$new = 0;
+$close = 0;
+$open = 0;
+$overdue = 0;
+$data = array();
+while ($row = mysql_fetch_assoc($result)) {
+    $data[] = $row;
+    if ($row['vStatus'] == "Open") {
+        $open++;
+    }
+    if ($row['vStatus'] == "Close") {
+        $close++;
+    }
+    $date = date("Y-m-d");
+    if ($row['vView'] == "NO") {
+        $new++;
+    }
+    if ($row['dDate'] != "0000-00-00") {
+        $date1 = date("Y-m-d", strtotime($row['dDate']));
+        if ($date > $date1 && $row['vStatus'] != "Close") {
+            $overdue++;
+        }
+    }
+}
 ?>
 <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
@@ -18,1251 +53,1267 @@
 
 <!-- Consider adding a manifest.appcache: h5bp.com/d/Offline -->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
-<head>
-    <meta charset="utf-8">
-    <link rel="dns-prefetch" href="http://fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="http://themes.googleusercontent.com" />
-    <link rel="dns-prefetch" href="http://ajax.googleapis.com" />
-    <link rel="dns-prefetch" href="http://cdnjs.cloudflare.com" />
-    <link rel="dns-prefetch" href="http://agorbatchev.typepad.com" />
+    <head>
+        <meta charset="utf-8">
+        <link rel="dns-prefetch" href="http://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="http://themes.googleusercontent.com" />
+        <link rel="dns-prefetch" href="http://ajax.googleapis.com" />
+        <link rel="dns-prefetch" href="http://cdnjs.cloudflare.com" />
+        <link rel="dns-prefetch" href="http://agorbatchev.typepad.com" />
 
-    <!-- Use the .htaccess and remove these lines to avoid edge case issues.
-       More info: h5bp.com/b/378 -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <!-- Use the .htaccess and remove these lines to avoid edge case issues.
+           More info: h5bp.com/b/378 -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>Login - Smooth Arrangement CCP</title>
-    <meta name="description" content="Kundendaten verwalten, E-Mails, Datenbanken, Dateien und Optionen verwalten.">
-    <meta name="author" content="Cordula Wulfert">
+        <title>Login - Smooth Arrangement CCP</title>
+        <meta name="description" content="Kundendaten verwalten, E-Mails, Datenbanken, Dateien und Optionen verwalten.">
+        <meta name="author" content="Cordula Wulfert">
 
-    <!-- Mobile viewport optimized: h5bp.com/viewport -->
-    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
-    <!-- iPhone: Don't render numbers as call links -->
-    <meta name="format-detection" content="telephone=no">
+        <!-- Mobile viewport optimized: h5bp.com/viewport -->
+        <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
+        <!-- iPhone: Don't render numbers as call links -->
+        <meta name="format-detection" content="telephone=no">
 
-    <link rel="shortcut icon" href="favicon.ico" />
-    <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
-    <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
+        <link rel="shortcut icon" href="favicon.ico" />
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
+        <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
 
-    <!-- The Styles -->
-    <!-- ---------- -->
+        <!-- The Styles -->
+        <!-- ---------- -->
 
-    <!-- Layout Styles -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/grid.css">
-    <link rel="stylesheet" href="css/layout.css">
-	
-
-    <!-- Icon Styles -->
-    <link rel="stylesheet" href="css/icons.css">
-    <link rel="stylesheet" href="css/fonts/font-awesome.css">
-    <!--[if IE 8]><link rel="stylesheet" href="css/fonts/font-awesome-ie7.css"><![endif]-->
-
-    <!-- External Styles -->
-    <link rel="stylesheet" href="css/external/jquery-ui-1.9.1.custom.css">
-    <link rel="stylesheet" href="css/external/jquery.chosen.css">
-    <link rel="stylesheet" href="css/external/jquery.cleditor.css">
-    <link rel="stylesheet" href="css/external/jquery.colorpicker.css">
-    <link rel="stylesheet" href="css/external/jquery.elfinder.css">
-    <link rel="stylesheet" href="css/external/jquery.fancybox.css">
-    <link rel="stylesheet" href="css/external/jquery.jgrowl.css">
-    <link rel="stylesheet" href="css/external/jquery.plupload.queue.css">
-    <link rel="stylesheet" href="css/external/syntaxhighlighter/shCore.css" />
-    <link rel="stylesheet" href="css/external/syntaxhighlighter/shThemeDefault.css" />
-
-    <!-- Elements -->
-    <link rel="stylesheet" href="css/elements.css">
-    <link rel="stylesheet" href="css/forms.css">
-
-    <!-- OPTIONAL: Print Stylesheet for Invoice -->
-    <link rel="stylesheet" href="css/print-invoice.css">
-
-    <!-- Typographics -->
-    <link rel="stylesheet" href="css/typographics.css">
-
-    <!-- Responsive Design -->
-    <link rel="stylesheet" href="css/media-queries.css">
-
-    <!-- Bad IE Styles -->
-    <link rel="stylesheet" href="css/ie-fixes.css">
+        <!-- Layout Styles -->
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/grid.css">
+        <link rel="stylesheet" href="css/layout.css">
 
 
+        <!-- Icon Styles -->
+        <link rel="stylesheet" href="css/icons.css">
+        <link rel="stylesheet" href="css/fonts/font-awesome.css">
+        <!--[if IE 8]><link rel="stylesheet" href="css/fonts/font-awesome-ie7.css"><![endif]-->
+
+        <!-- External Styles -->
+        <link rel="stylesheet" href="css/external/jquery-ui-1.9.1.custom.css">
+        <link rel="stylesheet" href="css/external/jquery.chosen.css">
+        <link rel="stylesheet" href="css/external/jquery.cleditor.css">
+        <link rel="stylesheet" href="css/external/jquery.colorpicker.css">
+        <link rel="stylesheet" href="css/external/jquery.elfinder.css">
+        <link rel="stylesheet" href="css/external/jquery.fancybox.css">
+        <link rel="stylesheet" href="css/external/jquery.jgrowl.css">
+        <link rel="stylesheet" href="css/external/jquery.plupload.queue.css">
+        <link rel="stylesheet" href="css/external/syntaxhighlighter/shCore.css" />
+        <link rel="stylesheet" href="css/external/syntaxhighlighter/shThemeDefault.css" />
+
+        <!-- Elements -->
+        <link rel="stylesheet" href="css/elements.css">
+        <link rel="stylesheet" href="css/forms.css">
+
+        <!-- OPTIONAL: Print Stylesheet for Invoice -->
+        <link rel="stylesheet" href="css/print-invoice.css">
+
+        <!-- Typographics -->
+        <link rel="stylesheet" href="css/typographics.css">
+
+        <!-- Responsive Design -->
+        <link rel="stylesheet" href="css/media-queries.css">
+
+        <!-- Bad IE Styles -->
+        <link rel="stylesheet" href="css/ie-fixes.css">
 
 
 
 
 
-    <!-- The Scripts -->
-    <!-- ----------- -->
-
-    <!-- JavaScript at the top (will be cached by browser) -->
 
 
-    <!-- Grab frameworks from CDNs -->
+        <!-- The Scripts -->
+        <!-- ----------- -->
+
+        <!-- JavaScript at the top (will be cached by browser) -->
+
+
+        <!-- Grab frameworks from CDNs -->
         <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.js"></script>
-    <script>window.jQuery || document.write('<script src="js/libs/jquery-1.8.2.js"><\/script>')</script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.js"></script>
+        <script>window.jQuery || document.write('<script src="js/libs/jquery-1.8.2.js"><\/script>')</script>
 
         <!-- Do the same with jQuery UI -->
-    <script src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
-    <script>window.jQuery.ui || document.write('<script src="js/libs/jquery-ui-1.9.1.js"><\/script>')</script>
+        <script src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+        <script>window.jQuery.ui || document.write('<script src="js/libs/jquery-ui-1.9.1.js"><\/script>')</script>
 
         <!-- Do the same with Lo-Dash.js -->
-    <!--[if gt IE 8]><!-->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/0.8.2/lodash.js"></script>
-    <script>window._ || document.write('<script src="js/libs/lo-dash.js"><\/script>')</script>
-    <!--<![endif]-->
-    <!-- IE8 doesn't like lodash -->
-    <!--[if lt IE 9]><script src="http://documentcloud.github.com/underscore/underscore.js"></script><![endif]-->
+        <!--[if gt IE 8]><!-->
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/0.8.2/lodash.js"></script>
+        <script>window._ || document.write('<script src="js/libs/lo-dash.js"><\/script>')</script>
+        <!--<![endif]-->
+        <!-- IE8 doesn't like lodash -->
+        <!--[if lt IE 9]><script src="http://documentcloud.github.com/underscore/underscore.js"></script><![endif]-->
 
-    <!-- Do the same with require.js -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.0.6/require.js"></script>
-    <script>window.require || document.write('<script src="js/libs/require-2.0.6.min.js"><\/script>')</script>
-
-
-    <!-- Load Webfont loader -->
-    <script type="text/javascript">
-        window.WebFontConfig = {
-            google: { families: [ 'PT Sans:400,700' ] },
-            active: function(){ $(window).trigger('fontsloaded') }
-        };
-    </script>
-    <script defer async src="https://ajax.googleapis.com/ajax/libs/webfont/1.0.28/webfont.js"></script>
-
-    <!-- Essential polyfills -->
-    <script src="js/mylibs/polyfills/modernizr-2.6.1.min.js"></script>
-    <script src="js/mylibs/polyfills/respond.js"></script>
-    <script src="js/mylibs/polyfills/matchmedia.js"></script>
-    <!--[if lt IE 9]><script src="js/mylibs/polyfills/selectivizr.js"></script><![endif]-->
-    <!--[if lt IE 10]><script src="js/mylibs/polyfills/excanvas.js"></script><![endif]-->
-    <!--[if lt IE 10]><script src="js/mylibs/polyfills/classlist.js"></script><![endif]-->
+        <!-- Do the same with require.js -->
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.0.6/require.js"></script>
+        <script>window.require || document.write('<script src="js/libs/require-2.0.6.min.js"><\/script>')</script>
 
 
-    <!-- scripts concatenated and minified via build script -->
+        <!-- Load Webfont loader -->
+        <script type="text/javascript">
+            window.WebFontConfig = {
+                google: {families: ['PT Sans:400,700']},
+                active: function () {
+                    $(window).trigger('fontsloaded')
+                }
+            };
+        </script>
+        <script defer async src="https://ajax.googleapis.com/ajax/libs/webfont/1.0.28/webfont.js"></script>
 
-    <!-- Scripts required everywhere -->
-    <script src="js/mylibs/jquery.hashchange.js"></script>
-    <script src="js/mylibs/jquery.idle-timer.js"></script>
-    <script src="js/mylibs/jquery.plusplus.js"></script>
-    <script src="js/mylibs/jquery.scrollTo.js"></script>
-    <script src="js/mylibs/jquery.ui.touch-punch.js"></script>
-    <script src="js/mylibs/jquery.ui.multiaccordion.js"></script>
-    <script src="js/mylibs/number-functions.js"></script>
-    <script src="js/mylibs/fullstats/jquery.css-transform.js"></script>
-    <script src="js/mylibs/fullstats/jquery.animate-css-rotate-scale.js"></script>
-    <script src="js/mylibs/forms/jquery.validate.js"></script>
+        <!-- Essential polyfills -->
+        <script src="js/mylibs/polyfills/modernizr-2.6.1.min.js"></script>
+        <script src="js/mylibs/polyfills/respond.js"></script>
+        <script src="js/mylibs/polyfills/matchmedia.js"></script>
+        <!--[if lt IE 9]><script src="js/mylibs/polyfills/selectivizr.js"></script><![endif]-->
+        <!--[if lt IE 10]><script src="js/mylibs/polyfills/excanvas.js"></script><![endif]-->
+        <!--[if lt IE 10]><script src="js/mylibs/polyfills/classlist.js"></script><![endif]-->
 
-    <!-- Do not touch! -->
-    <script src="js/mango.js"></script>
-    <script src="js/plugins.js"></script>
-    <script src="js/script.js"></script>
 
-    <!-- Your custom JS goes here -->
-    <script src="js/app.js"></script>
-    <!-- end scripts -->
-    <style>
-          .ui-dialog {
-              width: 505px !important;
-          }
-     </style>
-</head>
+        <!-- scripts concatenated and minified via build script -->
 
-<body>
+        <!-- Scripts required everywhere -->
+        <script src="js/mylibs/jquery.hashchange.js"></script>
+        <script src="js/mylibs/jquery.idle-timer.js"></script>
+        <script src="js/mylibs/jquery.plusplus.js"></script>
+        <script src="js/mylibs/jquery.scrollTo.js"></script>
+        <script src="js/mylibs/jquery.ui.touch-punch.js"></script>
+        <script src="js/mylibs/jquery.ui.multiaccordion.js"></script>
+        <script src="js/mylibs/number-functions.js"></script>
+        <script src="js/mylibs/fullstats/jquery.css-transform.js"></script>
+        <script src="js/mylibs/fullstats/jquery.animate-css-rotate-scale.js"></script>
+        <script src="js/mylibs/forms/jquery.validate.js"></script>
 
-    <!-- ----------------- -->
-    <!-- Some dialogs etc. -->
+        <!-- Do not touch! -->
+        <script src="js/mango.js"></script>
+        <script src="js/plugins.js"></script>
+        <script src="js/script.js"></script>
 
-    <!-- The loading box -->
-    <div id="loading-overlay"></div>
-    <div id="loading">
-        <span>lade...</span>
-    </div>
-    <!-- End of loading box -->
+        <!-- Your custom JS goes here -->
+        <script src="js/app.js"></script>
+        <!-- end scripts -->
+        <style>
+            .ui-dialog {
+                width: 505px !important;
+            }
+        </style>
+    </head>
 
-    <!-- The lock screen -->
-    <div id="lock-screen" title="Bildschrim gesperrt">
+    <body>
 
-        <a href="index.php" class="header right button grey flat">Logout</a>
+        <!-- ----------------- -->
+        <!-- Some dialogs etc. -->
 
-        <p>Du wurdest sicherheitshalber wegen Inaktivität ausgelogt.</p>
-        <p>1. Bitte schieb den Regler nach rechts<br>2. Bitte gib Dein Passwort ein</p>
+        <!-- The loading box -->
+        <div id="loading-overlay"></div>
+        <div id="loading">
+            <span>lade...</span>
+        </div>
+        <!-- End of loading box -->
 
-        <div class="actions">
-            <div id="slide_to_unlock">
-                <img src="img/elements/slide-unlock/lock-slider.png" alt="slide me">
-                <span>entsperren</span>
-            </div>
-            <form action="#" method="GET">
-                <input type="password" name="pwd" id="pwd" placeholder="Bitte Passwort eingeben..." autocorrect="off" autocapitalize="off"> <input type="submit" name=send value="OK" disabled> <input type="reset" value="X">
-            </form>
-        </div><!-- End of .actions -->
+        <!-- The lock screen -->
+        <div id="lock-screen" title="Bildschrim gesperrt">
 
-    </div><!-- End of lock screen -->
+            <a href="index.php" class="header right button grey flat">Logout</a>
 
-    <!-- The settings dialog -->
-    <div id="settings" class="settings-content" data-width=450>
+            <p>Du wurdest sicherheitshalber wegen Inaktivität ausgelogt.</p>
+            <p>1. Bitte schieb den Regler nach rechts<br>2. Bitte gib Dein Passwort ein</p>
 
-        <ul class="tabs center-elements">
-            <li><a href="#settings-1"><img src="img/icons/packs/fugue/24x24/user-business.png" alt="" /><span>Account Settings</span></a></li>
-            <li><a href="#settings-2"><img src="img/icons/packs/fugue/24x24/balloon.png" alt="" /><span>Notifications</span></a></li>
-            <li><a href="#settings-3"><img src="img/icons/packs/fugue/24x24/credit-card.png" alt="" /><span>Invoicing</span></a></li>
-        </ul>
+            <div class="actions">
+                <div id="slide_to_unlock">
+                    <img src="img/elements/slide-unlock/lock-slider.png" alt="slide me">
+                    <span>entsperren</span>
+                </div>
+                <form action="#" method="GET">
+                    <input type="password" name="pwd" id="pwd" placeholder="Bitte Passwort eingeben..." autocorrect="off" autocapitalize="off"> <input type="submit" name=send value="OK" disabled> <input type="reset" value="X">
+                </form>
+            </div><!-- End of .actions -->
 
-        <div class="change_password">
-            <form action="#" method="GET" class="validate" id="settings_password">
-                <p>
-                    <label for="settings-password">New Password:</label> <input type="password" id="settings-password" class="required strongpw small password meter" />
-                </p>
+        </div><!-- End of lock screen -->
+
+        <!-- The settings dialog -->
+        <div id="settings" class="settings-content" data-width=450>
+
+            <ul class="tabs center-elements">
+                <li><a href="#settings-1"><img src="img/icons/packs/fugue/24x24/user-business.png" alt="" /><span>Account Settings</span></a></li>
+                <li><a href="#settings-2"><img src="img/icons/packs/fugue/24x24/balloon.png" alt="" /><span>Notifications</span></a></li>
+                <li><a href="#settings-3"><img src="img/icons/packs/fugue/24x24/credit-card.png" alt="" /><span>Invoicing</span></a></li>
+            </ul>
+
+            <div class="change_password">
+                <form action="#" method="GET" class="validate" id="settings_password">
+                    <p>
+                        <label for="settings-password">New Password:</label> <input type="password" id="settings-password" class="required strongpw small password meter" />
+                    </p>
+                </form>
+                <div class="actions">
+                    <div class="right">
+                        <input form="settings_password" type="reset" value="Cancel" class="grey" />
+                        <input form="settings_password" type="submit" value="OK" />
+                    </div>
+                </div>
+            </div><!-- End of .change_password -->
+
+            <div class="content">
+
+                <div id="settings-1">
+                    <form action="#" method="GET">
+                        <p>
+                            <label for="settings-name">Name:</label> <input type="text" id="settings-name" class="medium" />
+                        </p>
+                        <p>
+                            <label for="settings-descr">Descripton:</label> <input type="text" id="settings-descr" class="medium" />
+                        </p>
+                        <p class="divider"></p>
+                        <p>
+                            <label for="settings-pw">Password: </label> <input class="grey change_password_button" type="button" id="settings-pw" value="Change Password..." data-lang-changed="Password changed" />
+                        </p>
+                        </for>
+                </div><!-- End of #settings-1 -->
+
+                <div id="settings-2">
+                    Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+                    <form action="#" method="GET">
+                        <div class="spacer"></div>
+                        <p class="divider"></p>
+                        <div class="spacer"></div>
+                        <p>
+                            <label for="settings-email">Email Address:</label> <input type="text" id="settings-email" class="medium" />
+                        </p>
+                        <p>
+                            <label for="settings-interval">Interval: </label>
+                            <select name="settings-interval" id="settings-interval" data-placeholder="Choose an Interval">
+                                <option value=""></option>
+                                <option value="Never">Never</option>
+                                <option value="Daily">Daily</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Yearly">Yearly</option>
+                            </select>
+                        </p>
+                    </form>
+                </div><!-- End of #settings-2 -->
+
+                <div id="settings-3">
+                    <form action="#" method="GET">
+                        <p>
+                            <label for="settings-card-number">Card number:</label> <input type="text" id="settings-card-number" class="medium" />
+                        </p>
+                        <p>
+                            <label for="settings-cvv">CVV:</label> <input type="text" id="settings-cvv" class="medium" />
+                        </p>
+                        <p>
+                            <label for="settings-expiration">Expiration: </label>
+                            <select sname="settings-expiration" id="settings-expiration" data-placeholder="Choose an Expiration">
+                                <option value=""></option>
+                                <option value="2012">2012</option>
+                                <option value="2013">2013</option>
+                                <option value="2014">2014</option>
+                                <option value="2015">2015</option>
+                            </select>
+                        </p>
+                    </form>
+                </div><!-- End of #settings-3 -->
+
+            </div><!-- End of .content -->
+
+            <div class="actions">
+                <div class="left">
+                    <button class="grey cancel">Cancel</button>
+                </div>
+                <div class="right">
+                    <button class="save">Save</button>
+                    <button class="hide saving" disabled >Saving...</button>
+                </div>
+            </div><!-- End of .actions -->
+
+        </div><!-- End of settings dialog -->
+
+        <!-- Add Client Example Dialog -->
+        <div style="display: none;" id="dialog_add_client" title="Add Client Example Dialog">
+            <form action="" class="full validate">
+                <div class="row">
+                    <label for="d2_username">
+                        <strong>Username</strong>
+                    </label>
+                    <div>
+                        <input class="required" type=text name=d2_username id=d2_username />
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="d2_email">
+                        <strong>Email Address</strong>
+                    </label>
+                    <div>
+                        <input class="required" type=text name=d2_email id=d2_email />
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="d2_role">
+                        <strong>Role</strong>
+                    </label>
+                    <div>
+                        <select name=d2_role id=d2_role class="search required" data-placeholder="Choose a Role">
+                            <option value=""></option>
+                            <option value="Applicant">Applicant</option>
+                            <option value="Member">Member</option>
+                            <option value="Moderator">Moderator</option>
+                            <option value="Administrator">Administrator</option>
+                        </select>
+                    </div>
+                </div>
             </form>
             <div class="actions">
+                <div class="left">
+                    <button class="grey cancel">Cancel</button>
+                </div>
                 <div class="right">
-                    <input form="settings_password" type="reset" value="Cancel" class="grey" />
-                    <input form="settings_password" type="submit" value="OK" />
+                    <button class="submit">Add User</button>
                 </div>
             </div>
-        </div><!-- End of .change_password -->
+        </div><!-- End if #dialog_add_client -->
 
-        <div class="content">
+        <script>
+            $$.ready(function () {
+                $("#dialog_add_client").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 400,
+                    open: function () {
+                        $(this).parent().css('overflow', 'visible');
+                        $$.utils.forms.resize()
+                    }
+                }).find('button.submit').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    if ($el.validate().form()) {
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                }).end().find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                    ;
+                });
 
-            <div id="settings-1">
-                <form action="#" method="GET">
-                    <p>
-                        <label for="settings-name">Name:</label> <input type="text" id="settings-name" class="medium" />
-                    </p>
-                    <p>
-                        <label for="settings-descr">Descripton:</label> <input type="text" id="settings-descr" class="medium" />
-                    </p>
-                    <p class="divider"></p>
-                    <p>
-                        <label for="settings-pw">Password: </label> <input class="grey change_password_button" type="button" id="settings-pw" value="Change Password..." data-lang-changed="Password changed" />
-                    </p>
-                </for>
-            </div><!-- End of #settings-1 -->
+                $(".open-add-client-dialog").click(function () {
+                    $("#dialog_add_client").dialog("open");
+                    return false;
+                });
+            });
+        </script>
+        <!--  End of Add Client Example Dialog -->
 
-            <div id="settings-2">
-                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
-                <form action="#" method="GET">
-                    <div class="spacer"></div>
-                    <p class="divider"></p>
-                    <div class="spacer"></div>
-                    <p>
-                        <label for="settings-email">Email Address:</label> <input type="text" id="settings-email" class="medium" />
-                    </p>
-                    <p>
-                        <label for="settings-interval">Interval: </label>
-                        <select name="settings-interval" id="settings-interval" data-placeholder="Choose an Interval">
-                            <option value=""></option>
-                            <option value="Never">Never</option>
-                            <option value="Daily">Daily</option>
-                            <option value="Weekly">Weekly</option>
-                            <option value="Monthly">Monthly</option>
-                            <option value="Yearly">Yearly</option>
-                        </select>
-                    </p>
-                </form>
-            </div><!-- End of #settings-2 -->
+        <!-- Message Dialog -->
+        <div style="display: none;" id="dialog_message" title="Conversation: John Doe">
+            <div class="spacer"></div>
+            <div class="messages full chat">
 
-            <div id="settings-3">
-                <form action="#" method="GET">
-                    <p>
-                        <label for="settings-card-number">Card number:</label> <input type="text" id="settings-card-number" class="medium" />
-                    </p>
-                    <p>
-                        <label for="settings-cvv">CVV:</label> <input type="text" id="settings-cvv" class="medium" />
-                    </p>
-                    <p>
-                        <label for="settings-expiration">Expiration: </label>
-                        <select sname="settings-expiration" id="settings-expiration" data-placeholder="Choose an Expiration">
-                            <option value=""></option>
-                            <option value="2012">2012</option>
-                            <option value="2013">2013</option>
-                            <option value="2014">2014</option>
-                            <option value="2015">2015</option>
-                        </select>
-                    </p>
-                </form>
-            </div><!-- End of #settings-3 -->
-
-        </div><!-- End of .content -->
-
-        <div class="actions">
-            <div class="left">
-                <button class="grey cancel">Cancel</button>
-            </div>
-            <div class="right">
-                <button class="save">Save</button>
-                <button class="hide saving" disabled >Saving...</button>
-            </div>
-        </div><!-- End of .actions -->
-
-    </div><!-- End of settings dialog -->
-
-    <!-- Add Client Example Dialog -->
-    <div style="display: none;" id="dialog_add_client" title="Add Client Example Dialog">
-        <form action="" class="full validate">
-            <div class="row">
-                <label for="d2_username">
-                    <strong>Username</strong>
-                </label>
-                <div>
-                    <input class="required" type=text name=d2_username id=d2_username />
+                <div class="msg reply">
+                    <img src="img/icons/packs/iconsweets2/25x25/user-2.png"/>
+                    <div class="content">
+                        <h3><a href="pages_profile.php">John Doe</a> <span>says:</span><small>3 hours ago</small></h3>
+                        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore
+                            et dolore magna aliquyam erat, sed diam voluptua.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <label for="d2_email">
-                    <strong>Email Address</strong>
-                </label>
-                <div>
-                    <input class="required" type=text name=d2_email id=d2_email />
+
+                <div class="msg">
+                    <img src="img/icons/packs/iconsweets2/25x25/user-2.png"/>
+                    <div class="content">
+                        <h3><a href="pages_profile.php">Peter Doe</a> <span>says:</span><small>5 hours ago</small></h3>
+                        <p>At vero eos et accusam et justo duo dolores et ea rebum.
+                            Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <label for="d2_role">
-                    <strong>Role</strong>
-                </label>
-                <div>
-                    <select name=d2_role id=d2_role class="search required" data-placeholder="Choose a Role">
-                        <option value=""></option>
-                        <option value="Applicant">Applicant</option>
-                        <option value="Member">Member</option>
-                        <option value="Moderator">Moderator</option>
-                        <option value="Administrator">Administrator</option>
-                    </select>
+
+            </div><!-- End of .messages -->
+
+            <div class="actions">
+                <div class="left">
+                    <input style="width: 320px;" type="text" name=d3_message id=d3_message placeholder="Type your message..."/>
                 </div>
-            </div>
-        </form>
-        <div class="actions">
-            <div class="left">
-                <button class="grey cancel">Cancel</button>
-            </div>
-            <div class="right">
-                <button class="submit">Add User</button>
-            </div>
-        </div>
-    </div><!-- End if #dialog_add_client -->
-
-    <script>
-    $$.ready(function() {
-        $( "#dialog_add_client" ).dialog({
-            autoOpen: false,
-            modal: true,
-            width: 400,
-            open: function(){ $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize() }
-        }).find('button.submit').click(function(){
-            var $el = $(this).parents('.ui-dialog-content');
-            if ($el.validate().form()) {
-                $el.find('form')[0].reset();
-                $el.dialog('close');
-            }
-        }).end().find('button.cancel').click(function(){
-            var $el = $(this).parents('.ui-dialog-content');
-            $el.find('form')[0].reset();
-            $el.dialog('close');;
-        });
-
-        $( ".open-add-client-dialog" ).click(function() {
-            $( "#dialog_add_client" ).dialog( "open" );
-            return false;
-        });
-    });
-    </script>
-    <!--  End of Add Client Example Dialog -->
-
-    <!-- Message Dialog -->
-    <div style="display: none;" id="dialog_message" title="Conversation: John Doe">
-        <div class="spacer"></div>
-        <div class="messages full chat">
-
-            <div class="msg reply">
-                <img src="img/icons/packs/iconsweets2/25x25/user-2.png"/>
-                <div class="content">
-                    <h3><a href="pages_profile.php">John Doe</a> <span>says:</span><small>3 hours ago</small></h3>
-                    <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore
-                    et dolore magna aliquyam erat, sed diam voluptua.</p>
+                <div class="right">
+                    <button>Send</button>
+                    <button class="grey">Cancel</button>
                 </div>
-            </div>
+            </div><!-- End of .actions -->
 
-            <div class="msg">
-                <img src="img/icons/packs/iconsweets2/25x25/user-2.png"/>
-                <div class="content">
-                    <h3><a href="pages_profile.php">Peter Doe</a> <span>says:</span><small>5 hours ago</small></h3>
-                    <p>At vero eos et accusam et justo duo dolores et ea rebum.
-                    Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+        </div><!-- End of #dialog_message -->
+
+        <script>
+            $$.ready(function () {
+                $("#dialog_message").dialog({
+                    autoOpen: false,
+                    width: 500,
+                    modal: true
+                }).find('button').click(function () {
+                    $(this).parents('.ui-dialog-content').dialog('close');
+                });
+
+                $(".open-message-dialog").click(function () {
+                    var id = $(this).attr('id');
+                    $.post("tickets_reply.php", {tid: id}).done(function (data) {
+                        $("#dialog_reply_ticket").html(data);
+                        $("#dialog_reply_ticket").dialog("open");
+                    });
+                    return false;
+                });
+            });
+        </script>
+        <!-- End of Message Dialog -->
+
+        <!--------------------------------->
+        <!-- Now, the page itself begins -->
+        <!--------------------------------->
+
+        <!-- The toolbar at the top -->
+        <section id="toolbar">
+            <div class="container_12">
+
+                <!-- Left side -->
+                <div class="left">
+                    <ul class="breadcrumb">
+
+                        <!--                     <li><a href="dashboard.php">Mango</a></li>
+                                                                <li><a href="javascript:void(0);">Dashboard</a></li> -->
+
+                    </ul>
                 </div>
-            </div>
+                <!-- End of .left -->
 
-        </div><!-- End of .messages -->
+                <!-- Right side -->
+                <div class="right">
+                    <ul>
 
-        <div class="actions">
-            <div class="left">
-                <input style="width: 320px;" type="text" name=d3_message id=d3_message placeholder="Type your message..."/>
-            </div>
-            <div class="right">
-                <button>Send</button>
-                <button class="grey">Cancel</button>
-            </div>
-        </div><!-- End of .actions -->
+                        <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></a></li>
 
-    </div><!-- End of #dialog_message -->
+                        <li>
+                            <a href="#"><span><?php echo $open; ?></span>Tickets</a>
 
-    <script>
-    $$.ready(function() {
-        $( "#dialog_message" ).dialog({
-            autoOpen: false,
-            width: 500,
-            modal: true
-        }).find('button').click(function(){
-            $(this).parents('.ui-dialog-content').dialog('close');
-        });
+                            <!-- Mail popup -->
+                            <div class="popup">
+                                <h3>Support</h3>
 
-        $( ".open-message-dialog" ).click(function() {
-            $( "#dialog_message" ).dialog( "open" );
-            return false;
-        });
-    });
-    </script>
-    <!-- End of Message Dialog -->
+                                <!-- Button bar -->
+                                <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
+                                <a class="button flat right" href="neuesticket.php">Neues Ticket</a>
 
-    <!--------------------------------->
-    <!-- Now, the page itself begins -->
-    <!--------------------------------->
+                                <!-- The mail content -->
+                                <?php
+                                   include('headpopup.php');
+                                ?>
+                                <!-- End of .contents -->
 
-    <!-- The toolbar at the top -->
-    <section id="toolbar">
-        <div class="container_12">
+                            </div><!-- End of .popup -->
+                        </li><!-- End of li -->
 
-            <!-- Left side -->
-            <div class="left">
-                <ul class="breadcrumb">
+                        <li class="space"></li>
 
-<!--                     <li><a href="dashboard.php">Mango</a></li>
-					<li><a href="javascript:void(0);">Dashboard</a></li> -->
+                        <li><a href="javascript:void(0);" id="btn-lock"><span>--:--</span>Bildschrim sperren</a></li>
 
-                </ul>
-            </div>
-            <!-- End of .left -->
+                        <li class="red"><a href="index.php">Ausloggen</a></li>
 
-            <!-- Right side -->
-            <div class="right">
-                <ul>
+                    </ul>
+                </div><!-- End of .right -->
 
-                    <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span>Philipp Dallmann</a></li>
+                <!-- Phone only items -->
+                <div class="phone">
 
-                    <li>
-                        <a href="#"><span>1</span>Tickets</a>
+                    <!-- User Link -->
+                    <li><a href="pages_profile.php"><span class="icon icon-user"></span></a></li>
+                    <!-- Navigation -->
+                    <li><a class="navigation" href="#"><span class="icon icon-list"></span></a></li>
 
-                        <!-- Mail popup -->
-                        <div class="popup">
-                            <h3>Support</h3>
+                </div><!-- End of phone items -->
 
-                            <!-- Button bar -->
-                            <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
-                            <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
+            </div><!-- End of .container_12 -->
+        </section><!-- End of #toolbar -->
 
-                            <!-- The mail content -->
-                            <div class="content mail">
-                                <ul>
+        <!-- The header containing the logo -->
+        <header class="container_12">
 
-                                    <li>
-                                        <div class="avatar">
-                                            <img src="img/elements/mail/avatar.png" height=40 width=40/>
-                                        </div>
-                                        <div class="info">
-                                            <strong>Manuela Raab</strong>
-                                            <span>dringend</span>
-                                            <small>01.07.2015 09:32</small>
-                                        </div>
-                                        <div class="text">
-                                            <p>Hallo Smooth Arrangement</p>
-                                            <p>Ich habe ein Problem mit meiner Homepage</p>
-                                            <p>M.Raab</p>
-                                            <div class="actions">
-                                                <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
-                                            </div>
-                                        </div>
-                                    </li>
+            <!-- Your logos -->
+            <a href="ccp.php"><img src="img/SmoothArrangement.png" alt="Smooth Arrangement" width="300" height="120"></a>
+            <a class="phone-title" href="dashboard.php"><img src="img/logo-mobile.png" alt="Smooth Arrangement" height="22" width="140" /></a>
 
- 
+            <div class="buttons">
+                <a href="statistics.php">
+                    <span class="icon icon-envelope-alt"></span>
+                    Web Mail
+                </a>
+                <a href="forms.php">
+                    <span class="icon icon-list-alt"></span>
+                    Rechnungen
+                </a>
+                <a href="tables_dynamic.php">
+                    <span class="icon icon-comment"></span>
+                    Support
+                </a>
+            </div><!-- End of .buttons -->
+        </header><!-- End of header -->
 
+        <!-- The container of the sidebar and content box -->
+        <div role="main" id="main" class="container_12 clearfix">
 
-
-                                </ul>
-                            </div><!-- End of .contents -->
-
-                        </div><!-- End of .popup -->
-                    </li><!-- End of li -->
-
-                    <li class="space"></li>
-
-                    <li><a href="javascript:void(0);" id="btn-lock"><span>--:--</span>Bildschrim sperren</a></li>
-
-                    <li class="red"><a href="index.php">Ausloggen</a></li>
-
-                </ul>
-            </div><!-- End of .right -->
-
-            <!-- Phone only items -->
-            <div class="phone">
-
-                <!-- User Link -->
-                <li><a href="pages_profile.php"><span class="icon icon-user"></span></a></li>
-                <!-- Navigation -->
-                <li><a class="navigation" href="#"><span class="icon icon-list"></span></a></li>
-
-            </div><!-- End of phone items -->
-
-        </div><!-- End of .container_12 -->
-    </section><!-- End of #toolbar -->
-
-    <!-- The header containing the logo -->
-    <header class="container_12">
-
-        <!-- Your logos -->
-        <a href="ccp.php"><img src="img/SmoothArrangement.png" alt="Smooth Arrangement" width="300" height="120"></a>
-        <a class="phone-title" href="dashboard.php"><img src="img/logo-mobile.png" alt="Smooth Arrangement" height="22" width="140" /></a>
-
-        <div class="buttons">
-            <a href="statistics.php">
-                <span class="icon icon-envelope-alt"></span>
-                Web Mail
-            </a>
-            <a href="forms.php">
-                <span class="icon icon-list-alt"></span>
-                Rechnungen
-            </a>
-            <a href="tables_dynamic.php">
-                <span class="icon icon-comment"></span>
-                Support
-            </a>
-        </div><!-- End of .buttons -->
-    </header><!-- End of header -->
-
-    <!-- The container of the sidebar and content box -->
-    <div role="main" id="main" class="container_12 clearfix">
-
-        <!-- The blue toolbar stripe -->
-        <section class="toolbar">
-            <div class="user">
-                <div class="avatar">
-                    <img src="img/layout/content/toolbar/user/avatar.png">
-<!--                     <span>1</span> -->
+            <!-- The blue toolbar stripe -->
+            <section class="toolbar">
+                <div class="user">
+                    <div class="avatar">
+                        <img src="img/elements/profile/<?=$userData['vImage']?>">
+    <!--                     <span>1</span> -->
+                    </div>
+                    <span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></span>
+                    <ul>
+                        <li><a href="javascript:$$.settings();">Kundendaten</a></li>
+                        <li class="line"></li>
+                        <li><a href="index.php">Logout</a></li>
+                    </ul>
                 </div>
-                <span>Philipp Dallmann</span>
-                <ul>
-                    <li><a href="javascript:$$.settings();">Kundendaten</a></li>
-                    <li class="line"></li>
-                    <li><a href="index.php">Logout</a></li>
-                </ul>
-            </div>
 
 
 
 
-        </section><!-- End of .toolbar-->
+            </section><!-- End of .toolbar-->
 
-        <!-- The sidebar -->
-        <aside>
-            <div class="top">
+            <!-- The sidebar -->
+            <aside>
+                <div class="top">
 
-                
-    <!-- Navigation -->
+
+                    <!-- Navigation -->
                     <nav><ul class="collapsible accordion">
 
-                        <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
+                            <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
 
-                        <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
-	$sql = "SELECT * FROM `user_mst` ";
-	$invoice = mysql_query($sql);
-	echo mysql_num_rows($invoice)-1;
-?></span></a>
-                            <ul>
-                                <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
-                                <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
-                            </ul>
-                        </li>
+                            <li>
+                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
+                                        $sql = "SELECT * FROM `user_mst` ";
+                                        $invoice = mysql_query($sql);
+                                        echo mysql_num_rows($invoice) - 1;
+                                        ?></span></a>
+                                <ul>
+                                    <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
+                                    <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
+                                </ul>
+                            </li>
 
-                        <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
-	$sql = "SELECT * FROM `invoice_mst` ";
-	$invoice = mysql_query($sql);
-	echo mysql_num_rows($invoice);
-?>
-</span></a>
-                            <ul>
-                                <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
-                                <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
-                            </ul>
-                        </li>
-						
-                        <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+                            <li>
+                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
+                                        $sql = "SELECT * FROM `invoice_mst` ";
+                                        $invoice = mysql_query($sql);
+                                        echo mysql_num_rows($invoice);
+                                        ?>
+                                    </span></a>
+                                <ul>
+                                    <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
+                                    <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+                                        <?php
+                                        $sql = "SELECT * FROM `offer_mst` ";
+                                        $invoice = mysql_query($sql);
+                                        echo mysql_num_rows($invoice);
+                                        ?></span></a>
+                                <ul>
+                                    <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
+                                    <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
+                                </ul>
+                            </li>						
+
+                            <li class="current">
+                                <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/gear.png" alt="" height=16 width=16>Einstellungen</span></a>
+                                <ul>
+                                    <li class="current"><a href="formate.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/table-draw.png" alt="" height=16 width=16></span>Formate</a></li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/blue-document-office-text.png" alt="" height=16 width=16>Vorlagen</a>
+                                <ul>
+                                    <li><a href="rechnungsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-pdf-text.png" alt="" height=16 width=16></span>Rechnungsvorlage</a></li>
+                                    <li><a href="angebotsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-excel-table.png" alt="" height=16 width=16></span>Angebotsvorlage</a></li>
+                                    <li><a href="emailvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-send-receive.png" alt="" height=16 width=16></span>E-Mail Vorlagen</a></li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/question.png" alt="" height=16 width=16>Ticketsystem</a>
+                                <ul>
+                                    <li><a href="alletickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mails-stack.png" alt="" height=16 width=16></span>Alle Tickets</a></li>
+                                    <li><a href="neuesticket.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail--plus.png" alt="" height=16 width=16></span>Neues Ticket</a></li>
+                                    <li><a href="offenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-open.png" alt="" height=16 width=16></span>Offene Tickets</a></li>
+                                    <li><a href="geschlossenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail.png" alt="" height=16 width=16></span>Geschlossene Tickets</a></li>
+                                </ul>
+                            </li>
+
+                        </ul></nav><!-- End of nav -->
+
+                </div><!-- End of .top -->
+
+                <div class="bottom sticky">
+                    <div class="divider"></div>
+                    <div class="buttons">
+                        <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
+                        <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
+                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
+                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
+                    </div>
+                    <div class="divider"></div>				
+                    <div class="progress">
+                        <div class="bar" data-title="Space" data-value="1285" data-max="5120" data-format="0,0 MB"></div>
+                        <div class="bar" data-title="Traffic" data-value="8.61" data-max="14" data-format="0.00 GB"></div>
+                        <div class="bar" data-title="Budget" data-value="20000" data-max="20000" data-format="$0,0"></div>
+                    </div>				
+                </div><!-- End of .bottom -->
+
+            </aside><!-- End of sidebar -->
+
+            <!-- Here goes the content. -->
+            <section id="content" class="container_12 clearfix" data-sort=true>
+                <div class="grid_12">
+                    <div class="box">
+
+                        <div class="header">
+                            <h2>Nummernkreise</h2>
+                        </div>
+
+                        <div class="content">
+
+                            <table class="styled">
+                                <colgroup>
+                                    <col span="1">
+                                    <col span="1">
+                                    <col span="1">
+                                    <col span="1">
+                                    <col span="1">
+                                </colgroup>
+
+                                <thead>
+                                    <tr>
+                                        <th>Gruppe</th>
+                                        <th>Prefix</th>
+                                        <th>Suffix</th>
+                                        <!-- <th>Nächste Nnummer</th> -->
+                                        <th>Speichern</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $sql = "SELECT * FROM number_range";
+                                    $number_range = mysql_query($sql);
+                                    while ($row = mysql_fetch_assoc($number_range)) {
+                                        ?>
+                                        <tr data_id="<?= $row['iId'] ?>">
+                                            <td><?= $row['vGroup'] ?></td>
+                                            <td contenteditable class="prefix"><?= $row['vPrefix'] ?></td>
+                                            <td contenteditable class="sufix"><?= $row['vSufix'] ?></td>
+                                            <!-- <td contenteditable class="nextnumber"><?= $row['vNextNumber'] ?></td> -->
+                                            <td class="center">
+                                                <a href="#" class="button small grey tooltip save_nr" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+
+                        </div><!-- End of .content -->
+
+                    </div><!-- End of .box -->
+                </div><!-- End of .grid_12 -->
+                <div class="grid_3">
+                    <div class="box">
+
+                        <div class="header">
+                            <h2><a href="#" class="button small grey tooltip new_solution" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Anrede</h2>
+                        </div>
+
+                        <div class="content">
+
+                            <table class="styled">
+                                <colgroup>
+                                    <col span="1">
+                                    <col span="1">
+                                </colgroup>
+
+                                <thead>
+                                    <tr>
+                                        <th>Anrede</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="solution_table">
+                                    <?php
+                                    $sql = "SELECT * FROM salutation";
+                                    $salutation = mysql_query($sql);
+                                    while ($row = mysql_fetch_assoc($salutation)) {
+                                        ?>
+                                        <tr data_id="<?= $row['iId'] ?>">
+                                            <td contenteditable class="text_solu"><?= $row['vSalutation'] ?></td>
+                                            <td class="center">
+                                                <a href="#" class="button small grey tooltip save_solution" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                <a href="#" class="button small grey tooltip delete_solution" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                    ?>								
+                                </tbody>
+                            </table>
+
+                        </div><!-- End of .content -->
+
+                    </div><!-- End of .box -->
+                </div><!-- End of .grid_12 -->
+                <div class="grid_3">
+                    <div class="box">
+
+                        <div class="header">
+                            <h2><a href="#" class="button small grey tooltip new_tax" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Steuersätze</h2>
+
+                        </div>
+
+                        <div class="content">
+
+                            <table class="styled">
+                                <colgroup>
+                                    <col span="1">
+                                    <col span="1">
+                                </colgroup>
+
+                                <thead>
+                                    <tr>
+                                        <th>MwSt. (in %)</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tax_table">
+                                    <?php
+                                    $sql = "SELECT * FROM tax_rate";
+                                    $tax_rate = mysql_query($sql);
+                                    while ($row = mysql_fetch_assoc($tax_rate)) {
+                                        ?>
+                                        <tr data_id="<?= $row['iId'] ?>">
+                                            <td contenteditable class="text_tax"><?= $row['vVat'] ?></td>
+                                            <td class="center">
+                                                <a href="#" class="button small grey tooltip save_tax" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                <a href="#" class="button small grey tooltip delete_tax" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+
+                        </div><!-- End of .content -->
+
+                    </div><!-- End of .box -->
+                </div><!-- End of .grid_12 -->			
+                <div class="grid_6">
+                    <div class="box">
+
+                        <div class="header">
+                            <h2><a href="#" class="button small grey tooltip new_country" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Länder</h2>
+
+                        </div>
+
+                        <div class="content">
+
+                            <table class="styled">
+                                <colgroup>
+                                    <col span="1">
+                                    <col span="1">
+                                </colgroup>
+
+                                <thead>
+                                    <tr>
+                                        <th>Land</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody  id="country_table">
+                                    <?php
+                                    $sql = "SELECT * FROM country_mst";
+                                    $country_mst = mysql_query($sql);
+                                    while ($row = mysql_fetch_assoc($country_mst)) {
+                                        ?>
+                                        <tr data_id="<?= $row['iId'] ?>">
+                                            <td contenteditable class="text_country"><?= $row['vCountry'] ?></td>
+                                            <td class="center">
+                                                <a href="#" class="button small grey tooltip save_country" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                <a href="#" class="button small grey tooltip delete_country" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                    ?>									
+                                </tbody>
+                            </table>
+
+                        </div><!-- End of .content -->
+
+                    </div><!-- End of .box -->
+                </div><!-- End of .grid_12 -->
+                <div class="grid_12 clearfix"></div>
+                <div class="grid_6">
+                    <div class="box">
+
+                        <div class="header">
+                            <h2><a href="#" class="button small grey tooltip new_payment" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Zahlungsarten</h2>
+
+                        </div>
+
+                        <div class="content">
+
+                            <table class="styled">
+                                <colgroup>
+                                    <col span="1">
+                                    <col span="1">
+                                </colgroup>
+
+                                <thead>
+                                    <tr>
+                                        <th>Zahlungsart</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payment_table">
+                                    <?php
+                                    $sql = "SELECT * FROM payment_mst";
+                                    $payment_mst = mysql_query($sql);
+                                    while ($row = mysql_fetch_assoc($payment_mst)) {
+                                        ?>
+                                        <tr data_id="<?= $row['iId'] ?>">
+                                            <td contenteditable class="text_payment"><?= $row['vPayment'] ?></td>
+                                            <td class="center">
+                                                <a href="#" class="button small grey tooltip save_payment" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                <a href="#" class="button small grey tooltip delete_payment" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                    ?>									
+                                </tbody>
+                            </table>
+
+                        </div><!-- End of .content -->
+
+                    </div><!-- End of .box -->
+                </div><!-- End of .grid_12 -->
+                <div class="grid_6">
+                    <div class="box">
+
+                        <div class="header">
+                            <h2><a href="#" class="button small grey tooltip new_payment_term" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Zahlungsbedingungen</h2>
+
+                        </div>
+
+                        <div class="content">
+
+                            <table class="styled">
+                                <colgroup>
+                                    <col span="1">
+                                    <col span="1">
+                                    <col span="1">
+                                </colgroup>
+
+                                <thead>
+                                    <tr>
+                                        <th>Zahlungsbedingung</th>
+                                        <th>Zahlungsfrist (in Tagen)</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payment_term_table">
+                                    <?php
+                                    $sql = "SELECT * FROM payment_term_mst";
+                                    $payment_term_mst = mysql_query($sql);
+                                    while ($row = mysql_fetch_assoc($payment_term_mst)) {
+                                        ?>
+                                        <tr data_id="<?= $row['iId'] ?>">
+                                            <td contenteditable class="text_payment_term"><?= $row['vName'] ?></td>
+                                            <td contenteditable class="text_payment_term_day"><?= $row['vTerm'] ?></td>
+                                            <td class="center">
+                                                <a href="#" class="button small grey tooltip save_payment_term" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
+                                                <a href="#" class="button small grey tooltip delete_payment_term" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                    ?>								
+                                </tbody>
+                            </table>
+
+                        </div><!-- End of .content -->
+
+                    </div><!-- End of .box -->
+                </div><!-- End of .grid_12 -->			
+
+                <!-- 			<ul class="stats not-on-phone">
+                                                <li>
+                                                        <strong>61263</strong>
+                                                        <small>Total Visits</small>
+                                                        <span class=green>+26%</span>
+                                                </li>
+                                                <li>
+                                                        <strong>23</strong>
+                                                        <small>Orders</small>
+                                                        <span class=green>+16%</span>
+                                                </li>
+                                                <li>
+                                                        <strong>$2165.57</strong>
+                                                        <small>Total Volume</small>
+                                                        <span class=red>-8%</span>
+                                                </li>
+                                                <li>
+                                                        <strong>0</strong>
+                                                        <small>Overdue Tickets</small>
+                                                        <span>0%</span>
+                                                </li>
+                                                <li>
+                                                        <strong>7</strong>
+                                                        <small>Reported Bugs</small>
+                                                        <span class=red>+17%</span>
+                                                </li>
+                                        </ul> <!-- End of ul.stats -->
+
+
+
+
+
+
+
+
+
+            </section><!-- End of #content -->
+
+        </div><!-- End of #main -->
+        <div style="display: none;" id="dialog_reply_ticket" title="Ticket beantworten"></div>
+
+        <!-- The footer -->
+        <footer class="container_12">
+            <ul class="grid_6">
+                <li><a href="#">Kontakt</a></li>
+                <li><a href="#">Impressum</a></li>
+                <li><a href="#">Datenschutz</a></li>
+            </ul>
+
+            <span class="grid_6">
+                Copyright &copy; 2015 Smooth Arrangement
+            </span>
+        </footer><!-- End of footer -->
+
+        <!-- Spawn $$.loaded -->
+        <script>
+            $$.loaded();
 <?php
-	$sql = "SELECT * FROM `offer_mst` ";
-	$invoice = mysql_query($sql);
-	echo mysql_num_rows($invoice);
-?></span></a>
-                            <ul>
-                                <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
-                                <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
-                            </ul>
-                        </li>						
-
-                        <li class="current">
-                            <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/gear.png" alt="" height=16 width=16>Einstellungen</span></a>
-                            <ul>
-                                <li class="current"><a href="formate.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/table-draw.png" alt="" height=16 width=16></span>Formate</a></li>
-                            </ul>
-                        </li>
-
-                        <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/blue-document-office-text.png" alt="" height=16 width=16>Vorlagen</a>
-                            <ul>
-								<li><a href="rechnungsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-pdf-text.png" alt="" height=16 width=16></span>Rechnungsvorlage</a></li>
-								<li><a href="angebotsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-excel-table.png" alt="" height=16 width=16></span>Angebotsvorlage</a></li>
-								<li><a href="emailvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-send-receive.png" alt="" height=16 width=16></span>E-Mail Vorlagen</a></li>
-                            </ul>
-                        </li>
-
-                        <li>
-                            <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/question.png" alt="" height=16 width=16>Ticketsystem</a>
-                            <ul>
-                                <li><a href="alletickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mails-stack.png" alt="" height=16 width=16></span>Alle Tickets</a></li>
-                                <li><a href="neuesticket.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail--plus.png" alt="" height=16 width=16></span>Neues Ticket</a></li>
-                                <li><a href="offenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-open.png" alt="" height=16 width=16></span>Offene Tickets</a></li>
-                                <li><a href="geschlossenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail.png" alt="" height=16 width=16></span>Geschlossene Tickets</a></li>
-                            </ul>
-                        </li>
-
-                    </ul></nav><!-- End of nav -->
-
-            </div><!-- End of .top -->
-
-             <div class="bottom sticky">
-                <div class="divider"></div>
-                <div class="buttons">
-                    <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
-                    <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
-                                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
-                                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
-                </div>
-                <div class="divider"></div>				
-                <div class="progress">
-                    <div class="bar" data-title="Space" data-value="1285" data-max="5120" data-format="0,0 MB"></div>
-                    <div class="bar" data-title="Traffic" data-value="8.61" data-max="14" data-format="0.00 GB"></div>
-                    <div class="bar" data-title="Budget" data-value="20000" data-max="20000" data-format="$0,0"></div>
-                </div>				
-            </div><!-- End of .bottom -->
-
-        </aside><!-- End of sidebar -->
-
-        <!-- Here goes the content. -->
-        <section id="content" class="container_12 clearfix" data-sort=true>
-			<div class="grid_12">
-				<div class="box">
-				
-					<div class="header">
-						<h2>Nummernkreise</h2>
-					</div>
-					
-					<div class="content">
-					
-						<table class="styled">
-							<colgroup>
-							   <col span="1">
-							   <col span="1">
-							   <col span="1">
-							   <col span="1">
-							   <col span="1">
-							</colgroup>
-
-							<thead>
-								<tr>
-									<th>Gruppe</th>
-									<th>Prefix</th>
-									<th>Suffix</th>
-									<!-- <th>Nächste Nnummer</th> -->
-									<th>Speichern</th>
-								</tr>
-							</thead>
-							<tbody>
-                                        <?php
-                                             $sql = "SELECT * FROM number_range";
-                                             $number_range = mysql_query($sql);
-                                             while($row = mysql_fetch_assoc($number_range)){
-                                        ?>
-                                                  <tr data_id="<?=$row['iId']?>">
-                                                       <td><?=$row['vGroup']?></td>
-                                                       <td contenteditable class="prefix"><?=$row['vPrefix']?></td>
-                                                       <td contenteditable class="sufix"><?=$row['vSufix']?></td>
-                                                       <!-- <td contenteditable class="nextnumber"><?=$row['vNextNumber']?></td> -->
-                                                       <td class="center">
-                                                            <a href="#" class="button small grey tooltip save_nr" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-                                                       </td>
-                                                  </tr>
-                                        <?php
-                                             }
-                                        ?>
-							</tbody>
-						</table>
-						
-					</div><!-- End of .content -->
-					
-				</div><!-- End of .box -->
-			</div><!-- End of .grid_12 -->
-			<div class="grid_3">
-				<div class="box">
-				
-					<div class="header">
-						<h2><a href="#" class="button small grey tooltip new_solution" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Anrede</h2>
-					</div>
-					
-					<div class="content">
-					
-						<table class="styled">
-							<colgroup>
-							   <col span="1">
-							   <col span="1">
-							</colgroup>
-
-							<thead>
-								<tr>
-									<th>Anrede</th>
-									<th>Aktionen</th>
-								</tr>
-							</thead>
-							<tbody id="solution_table">
-                                        <?php
-                                             $sql = "SELECT * FROM salutation";
-                                             $salutation = mysql_query($sql);
-                                             while($row = mysql_fetch_assoc($salutation)){
-                                        ?>
-                                                  <tr data_id="<?=$row['iId']?>">
-                                                       <td contenteditable class="text_solu"><?=$row['vSalutation']?></td>
-                                                       <td class="center">
-                                                            <a href="#" class="button small grey tooltip save_solution" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-                                                            <a href="#" class="button small grey tooltip delete_solution" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-                                                       </td>
-                                                  </tr>
-                                        <?php
-                                             }
-                                        ?>								
-							</tbody>
-						</table>
-						
-					</div><!-- End of .content -->
-					
-				</div><!-- End of .box -->
-			</div><!-- End of .grid_12 -->
-			<div class="grid_3">
-				<div class="box">
-				
-					<div class="header">
-						<h2><a href="#" class="button small grey tooltip new_tax" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Steuersätze</h2>
-
-					</div>
-					
-					<div class="content">
-					
-						<table class="styled">
-							<colgroup>
-							   <col span="1">
-							   <col span="1">
-							</colgroup>
-
-							<thead>
-								<tr>
-									<th>MwSt. (in %)</th>
-									<th>Aktionen</th>
-								</tr>
-							</thead>
-							<tbody id="tax_table">
-                                        <?php
-                                             $sql = "SELECT * FROM tax_rate";
-                                             $tax_rate = mysql_query($sql);
-                                             while($row = mysql_fetch_assoc($tax_rate)){
-                                        ?>
-                                                  <tr data_id="<?=$row['iId']?>">
-                                                       <td contenteditable class="text_tax"><?=$row['vVat']?></td>
-                                                       <td class="center">
-                                                            <a href="#" class="button small grey tooltip save_tax" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-                                                            <a href="#" class="button small grey tooltip delete_tax" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-                                                       </td>
-                                                  </tr>
-                                        <?php
-                                             }
-                                        ?>
-							</tbody>
-						</table>
-						
-					</div><!-- End of .content -->
-					
-				</div><!-- End of .box -->
-			</div><!-- End of .grid_12 -->			
-			<div class="grid_6">
-				<div class="box">
-				
-					<div class="header">
-						<h2><a href="#" class="button small grey tooltip new_country" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Länder</h2>
-
-					</div>
-					
-					<div class="content">
-					
-						<table class="styled">
-							<colgroup>
-							   <col span="1">
-							   <col span="1">
-							</colgroup>
-
-							<thead>
-								<tr>
-									<th>Land</th>
-									<th>Aktionen</th>
-								</tr>
-							</thead>
-							<tbody  id="country_table">
-                                        <?php
-                                             $sql = "SELECT * FROM country_mst";
-                                             $country_mst = mysql_query($sql);
-                                             while($row = mysql_fetch_assoc($country_mst)){
-                                        ?>
-                                                  <tr data_id="<?=$row['iId']?>">
-                                                       <td contenteditable class="text_country"><?=$row['vCountry']?></td>
-                                                       <td class="center">
-                                                            <a href="#" class="button small grey tooltip save_country" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-                                                            <a href="#" class="button small grey tooltip delete_country" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-                                                       </td>
-                                                  </tr>
-                                        <?php
-                                             }
-                                        ?>									
-							</tbody>
-						</table>
-						
-					</div><!-- End of .content -->
-					
-				</div><!-- End of .box -->
-			</div><!-- End of .grid_12 -->
-			<div class="grid_12 clearfix"></div>
-			<div class="grid_6">
-				<div class="box">
-				
-					<div class="header">
-						<h2><a href="#" class="button small grey tooltip new_payment" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Zahlungsarten</h2>
-
-					</div>
-					
-					<div class="content">
-					
-						<table class="styled">
-							<colgroup>
-							   <col span="1">
-							   <col span="1">
-							</colgroup>
-
-							<thead>
-								<tr>
-									<th>Zahlungsart</th>
-									<th>Aktionen</th>
-								</tr>
-							</thead>
-							<tbody id="payment_table">
-                                        <?php
-                                             $sql = "SELECT * FROM payment_mst";
-                                             $payment_mst = mysql_query($sql);
-                                             while($row = mysql_fetch_assoc($payment_mst)){
-                                        ?>
-                                                  <tr data_id="<?=$row['iId']?>">
-                                                       <td contenteditable class="text_payment"><?=$row['vPayment']?></td>
-                                                       <td class="center">
-                                                            <a href="#" class="button small grey tooltip save_payment" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-                                                            <a href="#" class="button small grey tooltip delete_payment" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-                                                       </td>
-                                                  </tr>
-                                        <?php
-                                             }
-                                        ?>									
-							</tbody>
-						</table>
-						
-					</div><!-- End of .content -->
-					
-				</div><!-- End of .box -->
-			</div><!-- End of .grid_12 -->
-			<div class="grid_6">
-				<div class="box">
-				
-					<div class="header">
-						<h2><a href="#" class="button small grey tooltip new_payment_term" data-gravity=s title="Neue Zeile"><i class="icon-plus"></i></a>&nbsp;Zahlungsbedingungen</h2>
-
-					</div>
-					
-					<div class="content">
-					
-						<table class="styled">
-							<colgroup>
-							   <col span="1">
-							   <col span="1">
-							   <col span="1">
-							</colgroup>
-
-							<thead>
-								<tr>
-									<th>Zahlungsbedingung</th>
-									<th>Zahlungsfrist (in Tagen)</th>
-									<th>Aktionen</th>
-								</tr>
-							</thead>
-							<tbody id="payment_term_table">
-                                        <?php
-                                             $sql = "SELECT * FROM payment_term_mst";
-                                             $payment_term_mst = mysql_query($sql);
-                                             while($row = mysql_fetch_assoc($payment_term_mst)){
-                                        ?>
-                                                  <tr data_id="<?=$row['iId']?>">
-                                                       <td contenteditable class="text_payment_term"><?=$row['vName']?></td>
-                                                       <td contenteditable class="text_payment_term_day"><?=$row['vTerm']?></td>
-                                                       <td class="center">
-                                                            <a href="#" class="button small grey tooltip save_payment_term" data-gravity=s title="Speichern"><i class="icon-save"></i></a>
-                                                            <a href="#" class="button small grey tooltip delete_payment_term" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>
-                                                       </td>
-                                                  </tr>
-                                        <?php
-                                             }
-                                        ?>								
-							</tbody>
-						</table>
-						
-					</div><!-- End of .content -->
-					
-				</div><!-- End of .box -->
-			</div><!-- End of .grid_12 -->			
-		
-<!-- 			<ul class="stats not-on-phone">
-				<li>
-					<strong>61263</strong>
-					<small>Total Visits</small>
-					<span class=green>+26%</span>
-				</li>
-				<li>
-					<strong>23</strong>
-					<small>Orders</small>
-					<span class=green>+16%</span>
-				</li>
-				<li>
-					<strong>$2165.57</strong>
-					<small>Total Volume</small>
-					<span class=red>-8%</span>
-				</li>
-				<li>
-					<strong>0</strong>
-					<small>Overdue Tickets</small>
-					<span>0%</span>
-				</li>
-				<li>
-					<strong>7</strong>
-					<small>Reported Bugs</small>
-					<span class=red>+17%</span>
-				</li>
-			</ul> <!-- End of ul.stats -->
-
-
-			
-			
-			
-			
-			
-	
-			
-        </section><!-- End of #content -->
-
-    </div><!-- End of #main -->
-
-    <!-- The footer -->
-    <footer class="container_12">
-        <ul class="grid_6">
-            <li><a href="#">Kontakt</a></li>
-            <li><a href="#">Impressum</a></li>
-            <li><a href="#">Datenschutz</a></li>
-        </ul>
-
-        <span class="grid_6">
-            Copyright &copy; 2015 Smooth Arrangement
-        </span>
-    </footer><!-- End of footer -->
-
-    <!-- Spawn $$.loaded -->
-    <script>
-          $$.loaded();
-          <?php
-               if(isset($_SESSION['id']) && $_SESSION['id'] != "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == ""){
-          ?>
-                      $$.ready(function() {
-                           setTimeout(function(){
-                                $('#btn-lock').trigger('click');
-                           },2000);
-                      });
-          <?php
-               }
-          ?>
-          $$.ready(function() {
-               $('.save_nr').live('click', function(e){
+if (isset($_SESSION['id']) && $_SESSION['id'] != "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "") {
+    ?>
+                $$.ready(function () {
+                    setTimeout(function () {
+                        $('#btn-lock').trigger('click');
+                    }, 2000);
+                });
+    <?php
+}
+?>
+            $$.ready(function () {
+                $('.save_nr').live('click', function (e) {
                     e.preventDefault();
                     var id = $(this).parent('td').parent('tr').attr('data_id');
                     var prefix = $(this).parent('td').parent('tr').children('.prefix').html();
                     var sufix = $(this).parent('td').parent('tr').children('.sufix').html();
                     var nextnumber = $(this).parent('td').parent('tr').children('.nextnumber').html();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'save_nr', id: id, prefix: prefix, sufix: sufix, nextnumber: nextnumber }
-                    }).done(function() {});
-               });
-               $('.new_solution').live('click', function(e){
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'save_nr', id: id, prefix: prefix, sufix: sufix, nextnumber: nextnumber}
+                    }).done(function () {
+                    });
+                });
+                $('.new_solution').live('click', function (e) {
                     e.preventDefault();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'new_solution' }
-                    }).done(function( id ) {
-                         var html = '<tr data_id="'+id+'">'+
-                                        '<td contenteditable class="text_solu"></td>'+
-                                        '<td class="center">'+
-                                             '<a href="#" class="button small grey tooltip save_solution" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
-                                             '<a href="#" class="button small grey tooltip delete_solution" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
-                                        '</td>'+
-                                   '</tr>';
-                           $('#solution_table').append(html);
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'new_solution'}
+                    }).done(function (id) {
+                        var html = '<tr data_id="' + id + '">' +
+                                '<td contenteditable class="text_solu"></td>' +
+                                '<td class="center">' +
+                                '<a href="#" class="button small grey tooltip save_solution" data-gravity=s title="Speichern"><i class="icon-save"></i></a>' +
+                                '<a href="#" class="button small grey tooltip delete_solution" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>' +
+                                '</td>' +
+                                '</tr>';
+                        $('#solution_table').append(html);
                     });
-               });
-               //Solution
-               $('.save_solution').live('click', function(e){
+                });
+                //Solution
+                $('.save_solution').live('click', function (e) {
                     e.preventDefault();
                     var id = $(this).parent('td').parent('tr').attr('data_id');
                     var text = $(this).parent('td').parent('tr').children('.text_solu').html();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'save_solution', id: id, text: text }
-                    }).done(function( msg ) {});
-               });
-               $('.delete_solution').live('click', function(e){
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'save_solution', id: id, text: text}
+                    }).done(function (msg) {
+                    });
+                });
+                $('.delete_solution').live('click', function (e) {
                     e.preventDefault();
-                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
-                         var id = $(this).parent('td').parent('tr').attr('data_id');
-                         var remove = $(this);
-                         $.ajax({
-                              method: "POST",
-                              url: "ajax_save.php",
-                              data: { type: 'delete_solution', id: id }
-                         }).done(function( msg ) {
-                              if(msg === '1'){
-                                   $(remove).parent('td').parent('tr').remove();
-                              } else {
-                                   alert(msg);
-                              }
-                         });
+                    if (confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")) {
+                        var id = $(this).parent('td').parent('tr').attr('data_id');
+                        var remove = $(this);
+                        $.ajax({
+                            method: "POST",
+                            url: "ajax_save.php",
+                            data: {type: 'delete_solution', id: id}
+                        }).done(function (msg) {
+                            if (msg === '1') {
+                                $(remove).parent('td').parent('tr').remove();
+                            } else {
+                                alert(msg);
+                            }
+                        });
                     }
-               });
-               //Tax
-               $('.new_tax').live('click', function(e){
+                });
+                //Tax
+                $('.new_tax').live('click', function (e) {
                     e.preventDefault();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'new_tax' }
-                    }).done(function( id ) {
-                         var html = '<tr data_id="'+id+'">'+
-                                        '<td contenteditable class="text_tax"></td>'+
-                                        '<td class="center">'+
-                                             '<a href="#" class="button small grey tooltip save_tax" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
-                                             '<a href="#" class="button small grey tooltip delete_tax" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
-                                        '</td>'+
-                                   '</tr>';
-                           $('#tax_table').append(html);
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'new_tax'}
+                    }).done(function (id) {
+                        var html = '<tr data_id="' + id + '">' +
+                                '<td contenteditable class="text_tax"></td>' +
+                                '<td class="center">' +
+                                '<a href="#" class="button small grey tooltip save_tax" data-gravity=s title="Speichern"><i class="icon-save"></i></a>' +
+                                '<a href="#" class="button small grey tooltip delete_tax" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>' +
+                                '</td>' +
+                                '</tr>';
+                        $('#tax_table').append(html);
                     });
-               });
-               $('.save_tax').live('click', function(e){
+                });
+                $('.save_tax').live('click', function (e) {
                     e.preventDefault();
                     var id = $(this).parent('td').parent('tr').attr('data_id');
                     var text = $(this).parent('td').parent('tr').children('.text_tax').html();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'save_tax', id: id, text: text }
-                    }).done(function( msg ) {});
-               });
-               $('.delete_tax').live('click', function(e){
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'save_tax', id: id, text: text}
+                    }).done(function (msg) {
+                    });
+                });
+                $('.delete_tax').live('click', function (e) {
                     e.preventDefault();
-                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
-                         var id = $(this).parent('td').parent('tr').attr('data_id');
-                         var remove = $(this);
-                         $.ajax({
-                              method: "POST",
-                              url: "ajax_save.php",
-                              data: { type: 'delete_tax', id: id }
-                         }).done(function( msg ) {
-                              if(msg === '1'){
-                                   $(remove).parent('td').parent('tr').remove();
-                              } else {
-                                   alert(msg);
-                              }
-                         });
+                    if (confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")) {
+                        var id = $(this).parent('td').parent('tr').attr('data_id');
+                        var remove = $(this);
+                        $.ajax({
+                            method: "POST",
+                            url: "ajax_save.php",
+                            data: {type: 'delete_tax', id: id}
+                        }).done(function (msg) {
+                            if (msg === '1') {
+                                $(remove).parent('td').parent('tr').remove();
+                            } else {
+                                alert(msg);
+                            }
+                        });
                     }
-               });
-               
-               //Country
-               $('.new_country').live('click', function(e){
+                });
+
+                //Country
+                $('.new_country').live('click', function (e) {
                     e.preventDefault();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'new_country' }
-                    }).done(function( id ) {
-                         var html = '<tr data_id="'+id+'">'+
-                                        '<td contenteditable class="text_country"></td>'+
-                                        '<td class="center">'+
-                                             '<a href="#" class="button small grey tooltip save_country" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
-                                             '<a href="#" class="button small grey tooltip delete_country" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
-                                        '</td>'+
-                                   '</tr>';
-                           $('#country_table').append(html);
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'new_country'}
+                    }).done(function (id) {
+                        var html = '<tr data_id="' + id + '">' +
+                                '<td contenteditable class="text_country"></td>' +
+                                '<td class="center">' +
+                                '<a href="#" class="button small grey tooltip save_country" data-gravity=s title="Speichern"><i class="icon-save"></i></a>' +
+                                '<a href="#" class="button small grey tooltip delete_country" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>' +
+                                '</td>' +
+                                '</tr>';
+                        $('#country_table').append(html);
                     });
-               });
-               $('.save_country').live('click', function(e){
+                });
+                $('.save_country').live('click', function (e) {
                     e.preventDefault();
                     var id = $(this).parent('td').parent('tr').attr('data_id');
                     var text = $(this).parent('td').parent('tr').children('.text_country').html();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'save_country', id: id, text: text }
-                    }).done(function( msg ) {});
-               });
-               $('.delete_country').live('click', function(e){
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'save_country', id: id, text: text}
+                    }).done(function (msg) {
+                    });
+                });
+                $('.delete_country').live('click', function (e) {
                     e.preventDefault();
-                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
-                         var id = $(this).parent('td').parent('tr').attr('data_id');
-                         var remove = $(this);
-                         $.ajax({
-                              method: "POST",
-                              url: "ajax_save.php",
-                              data: { type: 'delete_country', id: id }
-                         }).done(function( msg ) {
-                              if(msg === '1'){
-                                   $(remove).parent('td').parent('tr').remove();
-                              } else {
-                                   alert(msg);
-                              }
-                         });
+                    if (confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")) {
+                        var id = $(this).parent('td').parent('tr').attr('data_id');
+                        var remove = $(this);
+                        $.ajax({
+                            method: "POST",
+                            url: "ajax_save.php",
+                            data: {type: 'delete_country', id: id}
+                        }).done(function (msg) {
+                            if (msg === '1') {
+                                $(remove).parent('td').parent('tr').remove();
+                            } else {
+                                alert(msg);
+                            }
+                        });
                     }
-               });
-               
-               //Payment
-               $('.new_payment').live('click', function(e){
+                });
+
+                //Payment
+                $('.new_payment').live('click', function (e) {
                     e.preventDefault();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'new_payment' }
-                    }).done(function( id ) {
-                         var html = '<tr data_id="'+id+'">'+
-                                        '<td contenteditable class="text_payment"></td>'+
-                                        '<td class="center">'+
-                                             '<a href="#" class="button small grey tooltip save_payment" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
-                                             '<a href="#" class="button small grey tooltip delete_payment" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
-                                        '</td>'+
-                                   '</tr>';
-                           $('#payment_table').append(html);
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'new_payment'}
+                    }).done(function (id) {
+                        var html = '<tr data_id="' + id + '">' +
+                                '<td contenteditable class="text_payment"></td>' +
+                                '<td class="center">' +
+                                '<a href="#" class="button small grey tooltip save_payment" data-gravity=s title="Speichern"><i class="icon-save"></i></a>' +
+                                '<a href="#" class="button small grey tooltip delete_payment" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>' +
+                                '</td>' +
+                                '</tr>';
+                        $('#payment_table').append(html);
                     });
-               });
-               $('.save_payment').live('click', function(e){
+                });
+                $('.save_payment').live('click', function (e) {
                     e.preventDefault();
                     var id = $(this).parent('td').parent('tr').attr('data_id');
                     var text = $(this).parent('td').parent('tr').children('.text_payment').html();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'save_payment', id: id, text: text }
-                    }).done(function( msg ) {});
-               });
-               $('.delete_payment').live('click', function(e){
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'save_payment', id: id, text: text}
+                    }).done(function (msg) {
+                    });
+                });
+                $('.delete_payment').live('click', function (e) {
                     e.preventDefault();
-                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
-                         var id = $(this).parent('td').parent('tr').attr('data_id');
-                         var remove = $(this);
-                         $.ajax({
-                              method: "POST",
-                              url: "ajax_save.php",
-                              data: { type: 'delete_payment', id: id }
-                         }).done(function( msg ) {
-                              if(msg === '1'){
-                                   $(remove).parent('td').parent('tr').remove();
-                              } else {
-                                   alert(msg);
-                              }
-                         });
+                    if (confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")) {
+                        var id = $(this).parent('td').parent('tr').attr('data_id');
+                        var remove = $(this);
+                        $.ajax({
+                            method: "POST",
+                            url: "ajax_save.php",
+                            data: {type: 'delete_payment', id: id}
+                        }).done(function (msg) {
+                            if (msg === '1') {
+                                $(remove).parent('td').parent('tr').remove();
+                            } else {
+                                alert(msg);
+                            }
+                        });
                     }
-               });
-               
-               //Payment Term
-               $('.new_payment_term').live('click', function(e){
+                });
+
+                //Payment Term
+                $('.new_payment_term').live('click', function (e) {
                     e.preventDefault();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'new_payment_term' }
-                    }).done(function( id ) {
-                         var html = '<tr data_id="'+id+'">'+
-                                        '<td contenteditable class="text_payment_term"></td>'+
-                                        '<td contenteditable class="text_payment_term_day"></td>'+
-                                        '<td class="center">'+
-                                             '<a href="#" class="button small grey tooltip save_payment_term" data-gravity=s title="Speichern"><i class="icon-save"></i></a>'+
-                                             '<a href="#" class="button small grey tooltip delete_payment_term" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>'+
-                                        '</td>'+
-                                   '</tr>';
-                           $('#payment_term_table').append(html);
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'new_payment_term'}
+                    }).done(function (id) {
+                        var html = '<tr data_id="' + id + '">' +
+                                '<td contenteditable class="text_payment_term"></td>' +
+                                '<td contenteditable class="text_payment_term_day"></td>' +
+                                '<td class="center">' +
+                                '<a href="#" class="button small grey tooltip save_payment_term" data-gravity=s title="Speichern"><i class="icon-save"></i></a>' +
+                                '<a href="#" class="button small grey tooltip delete_payment_term" data-gravity=s title="Löschen"><i class="icon-remove"></i></a>' +
+                                '</td>' +
+                                '</tr>';
+                        $('#payment_term_table').append(html);
                     });
-               });
-               $('.save_payment_term').live('click', function(e){
+                });
+                $('.save_payment_term').live('click', function (e) {
                     e.preventDefault();
                     var id = $(this).parent('td').parent('tr').attr('data_id');
                     var text = $(this).parent('td').parent('tr').children('.text_payment_term').html();
                     var day = $(this).parent('td').parent('tr').children('.text_payment_term_day').html();
                     $.ajax({
-                         method: "POST",
-                         url: "ajax_save.php",
-                         data: { type: 'save_payment_term', id: id, text: text, day: day }
-                    }).done(function( msg ) {});
-               });
-               $('.delete_payment_term').live('click', function(e){
+                        method: "POST",
+                        url: "ajax_save.php",
+                        data: {type: 'save_payment_term', id: id, text: text, day: day}
+                    }).done(function (msg) {
+                    });
+                });
+                $('.delete_payment_term').live('click', function (e) {
                     e.preventDefault();
-                    if(confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")){
-                         var id = $(this).parent('td').parent('tr').attr('data_id');
-                         var remove = $(this);
-                         $.ajax({
-                              method: "POST",
-                              url: "ajax_save.php",
-                              data: { type: 'delete_payment_term', id: id }
-                         }).done(function( msg ) {
-                              if(msg === '1'){
-                                   $(remove).parent('td').parent('tr').remove();
-                              } else {
-                                   alert(msg);
-                              }
-                         });
+                    if (confirm("Möchten Sie den wirklich löschen? Das kann nicht rückgängig gemacht werden.")) {
+                        var id = $(this).parent('td').parent('tr').attr('data_id');
+                        var remove = $(this);
+                        $.ajax({
+                            method: "POST",
+                            url: "ajax_save.php",
+                            data: {type: 'delete_payment_term', id: id}
+                        }).done(function (msg) {
+                            if (msg === '1') {
+                                $(remove).parent('td').parent('tr').remove();
+                            } else {
+                                alert(msg);
+                            }
+                        });
                     }
-               });
-          });
-    </script>
+                });
+            });
+        </script>
+        <script>
+            $$.ready(function () {
+                $("#dialog_reply_ticket").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 1100,
+                    open: function () {
+                        $(this).parent().css('overflow', 'visible');
+                        $$.utils.forms.resize()
+                    }
+                }).find('button.submit').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    if ($el.validate().form()) {
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                }).end().find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                    ;
+                });
+            });
+        </script>
 
-    <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
-       chromium.org/developers/how-tos/chrome-frame-getting-started -->
-    <!--[if lt IE 7 ]>
-    <script defer src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
-    <script defer>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
-    <![endif]-->
+        <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
+           chromium.org/developers/how-tos/chrome-frame-getting-started -->
+        <!--[if lt IE 7 ]>
+        <script defer src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+        <script defer>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+        <![endif]-->
 
-</body>
+    </body>
 </html>

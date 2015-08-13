@@ -102,7 +102,7 @@ sub { bottom: -0.25em; }
 ul, ol { margin: 1em 0; padding: 0 0 0 40px; }
 dd { margin: 0 0 0 40px; }
 nav ul, nav ol { list-style: none; list-style-image: none; margin: 0; padding: 0; }
-
+.user .avatar > img { height: 30px; width: 30px;}
 
 /* =============================================================================
    Embedded content
@@ -206,22 +206,10 @@ td { vertical-align: top; }
 /* ==|== primary styles =====================================================
    Author:
    ========================================================================== */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.content.mail {
+    max-height: 335px;
+    overflow: auto;
+}
 /* ==|== media queries ======================================================
    PLACEHOLDER Media Queries for Responsive Design.
    These override the primary ('mobile first') styles

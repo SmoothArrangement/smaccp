@@ -3630,9 +3630,6 @@ div.ui-state-default.ui-spinner {
 }
 
 .mail li.normal:hover, .mail li.normal.hover {
-	margin: -1px;
-
-	border: 1px solid #21518a;
 	background: url('../img/elements/mail/hover-bg.png') repeat-x #356baa;
 }
 

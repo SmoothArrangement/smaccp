@@ -70,6 +70,13 @@
                $emsg = "This e-mail address is already exist.";
           }
      }
+     $userData = NULL;
+if (isset($_SESSION['uid'])) {
+    $id = $_SESSION['uid'];
+    $query = "SELECT * FROM user_mst WHERE iId='" . $id . "'";
+    $userData = mysql_query($query);
+    $userData = mysql_fetch_assoc($userData);
+}
 ?>
 <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
@@ -104,12 +111,6 @@
           <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
           <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
 
-
-
-
-
-
-
           <!-- The Styles -->
           <!-- ---------- -->
 
@@ -117,7 +118,6 @@
           <link rel="stylesheet" href="css/style.css">
           <link rel="stylesheet" href="css/grid.css">
           <link rel="stylesheet" href="css/layout.css">
-
 
           <!-- Icon Styles -->
           <link rel="stylesheet" href="css/icons.css">
@@ -152,17 +152,10 @@
           <!-- Bad IE Styles -->
           <link rel="stylesheet" href="css/ie-fixes.css">
 
-
-
-
-
-
-
           <!-- The Scripts -->
           <!-- ----------- -->
 
           <!-- JavaScript at the top (will be cached by browser) -->
-
 
           <!-- Grab frameworks from CDNs -->
           <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
@@ -185,7 +178,6 @@
           <script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.0.6/require.js"></script>
           <script>window.require || document.write('<script src="js/libs/require-2.0.6.min.js"><\/script>')</script>
 
-
           <!-- Load Webfont loader -->
           <script type="text/javascript">
                window.WebFontConfig = {
@@ -204,7 +196,6 @@
           <!--[if lt IE 9]><script src="js/mylibs/polyfills/selectivizr.js"></script><![endif]-->
           <!--[if lt IE 10]><script src="js/mylibs/polyfills/excanvas.js"></script><![endif]-->
           <!--[if lt IE 10]><script src="js/mylibs/polyfills/classlist.js"></script><![endif]-->
-
 
           <!-- scripts concatenated and minified via build script -->
 
@@ -515,51 +506,16 @@
                     <div class="right">
                          <ul>
 
-                              <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span>Philipp Dallmann</a></li>
+                              <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></a></li>
 
                               <li>
                                    <a href="#"><span>1</span>Tickets</a>
 
                                    <!-- Mail popup -->
-                                   <div class="popup">
-                                        <h3>Support</h3>
-
-                                        <!-- Button bar -->
-                                        <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
-                                        <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
-
-                                        <!-- The mail content -->
-                                        <div class="content mail">
-                                             <ul>
-
-                                                  <li>
-                                                       <div class="avatar">
-                                                            <img src="img/elements/mail/avatar.png" height=40 width=40/>
-                                                       </div>
-                                                       <div class="info">
-                                                            <strong>Manuela Raab</strong>
-                                                            <span>dringend</span>
-                                                            <small>01.07.2015 09:32</small>
-                                                       </div>
-                                                       <div class="text">
-                                                            <p>Hallo Smooth Arrangement</p>
-                                                            <p>Ich habe ein Problem mit meiner Homepage</p>
-                                                            <p>M.Raab</p>
-                                                            <div class="actions">
-                                                                 <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                                 <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
-                                                            </div>
-                                                       </div>
-                                                  </li>
-
-
-
-
-
-                                             </ul>
-                                        </div><!-- End of .contents -->
-
-                                   </div><!-- End of .popup -->
+                                   <?php
+                                        include('headpopup.php');
+                                   ?>
+                                   <!-- End of .popup -->
                               </li><!-- End of li -->
 
                               <li class="space"></li>
@@ -614,10 +570,10 @@
                <section class="toolbar">
                     <div class="user">
                          <div class="avatar">
-                              <img src="img/layout/content/toolbar/user/avatar.png">
+                              <img src="img/elements/profile/<?=$userData['vImage']?>">
           <!--                     <span>1</span> -->
                          </div>
-                         <span>Philipp Dallmann</span>
+                         <span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></span>
                          <ul>
                               <li><a href="javascript:$$.settings();">Kundendaten</a></li>
                               <li class="line"></li>

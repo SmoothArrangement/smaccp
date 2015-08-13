@@ -439,6 +439,41 @@ $invoicehtml = str_replace(array(
 	echo "<script>window.location.href='angebote.php';</script>";
 	die;
 }
+$userData = NULL;
+if (isset($_SESSION['uid'])) {
+    $id = $_SESSION['uid'];
+    $query = "SELECT * FROM user_mst WHERE iId='" . $id . "'";
+    $userData = mysql_query($query);
+    $userData = mysql_fetch_assoc($userData);
+}
+$select = "SELECT tm.*,um1.vFname as sendfname,um1.vLname as sendlname,um2.vFname as recfname,um2.vLname as reclname FROM ticket_mst tm
+               LEFT JOIN user_mst um1 ON tm.iSenderId=um1.iId
+               LEFT JOIN user_mst um2 ON tm.iReceiverId=um2.iId WHERE tm.iReceiverId='" . $_SESSION['uid'] . "' OR tm.iSenderId='" . $_SESSION['uid'] . "' ORDER BY tCreateDate DESC";
+$result = mysql_query($select);
+$new = 0;
+$close = 0;
+$open = 0;
+$overdue = 0;
+$data = array();
+while ($row = mysql_fetch_assoc($result)) {
+    $data[] = $row;
+    if ($row['vStatus'] == "Open") {
+        $open++;
+    }
+    if ($row['vStatus'] == "Close") {
+        $close++;
+    }
+    $date = date("Y-m-d");
+    if ($row['vView'] == "NO") {
+        $new++;
+    }
+    if ($row['dDate'] != "0000-00-00") {
+        $date1 = date("Y-m-d", strtotime($row['dDate']));
+        if ($date > $date1 && $row['vStatus'] != "Close") {
+            $overdue++;
+        }
+    }
+}
 ///////////////////////////////////////////////////////////////////////////////	 	 
 ?>
 <!doctype html>
@@ -842,8 +877,12 @@ $invoicehtml = str_replace(array(
                     });
 
                     $(".open-message-dialog").click(function() {
-                         $("#dialog_message").dialog("open");
-                         return false;
+                         var id = $(this).attr('id');
+                    $.post("tickets_reply.php", {tid: id}).done(function (data) {
+                        $("#dialog_reply_ticket").html(data);
+                        $("#dialog_reply_ticket").dialog("open");
+                    });
+                    return false;
                     });
                });
           </script>
@@ -868,43 +907,26 @@ $invoicehtml = str_replace(array(
                     <!-- Right side -->
                     <div class="right">
                          <ul>
-                              <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span>Philipp Dallmann</a></li>
+                              <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></a></li>
                               <li>
-                                   <a href="#"><span>1</span>Tickets</a>
+                                   <a href="#"><span><?php echo $open; ?></span>Tickets</a>
+
                                    <!-- Mail popup -->
                                    <div class="popup">
-                                        <h3>Support</h3>
-                                        <!-- Button bar -->
-                                        <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
-                                        <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
+                                       <h3>Support</h3>
 
-                                        <!-- The mail content -->
-                                        <div class="content mail">
-                                             <ul>
-                                                  <li>
-                                                       <div class="avatar">
-                                                            <img src="img/elements/mail/avatar.png" height=40 width=40/>
-                                                       </div>
-                                                       <div class="info">
-                                                            <strong>Manuela Raab</strong>
-                                                            <span>dringend</span>
-                                                            <small>01.07.2015 09:32</small>
-                                                       </div>
-                                                       <div class="text">
-                                                            <p>Hallo Smooth Arrangement</p>
-                                                            <p>Ich habe ein Problem mit meiner Homepage</p>
-                                                            <p>M.Raab</p>
-                                                            <div class="actions">
-                                                                 <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                                 <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
-                                                            </div>
-                                                       </div>
-                                                  </li>
-                                             </ul>
-                                        </div><!-- End of .contents -->
+                                       <!-- Button bar -->
+                                       <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
+                                       <a class="button flat right" href="neuesticket.php">Neues Ticket</a>
+
+                                       <!-- The mail content -->
+                                       <?php
+                                          include('headpopup.php');
+                                       ?>
+                                       <!-- End of .contents -->
 
                                    </div><!-- End of .popup -->
-                              </li><!-- End of li -->
+                               </li><!-- End of li -->
 
                               <li class="space"></li>
 
@@ -957,10 +979,10 @@ $invoicehtml = str_replace(array(
                <section class="toolbar">
                     <div class="user">
                          <div class="avatar">
-                              <img src="img/layout/content/toolbar/user/avatar.png">
+                              <img src="img/elements/profile/<?=$userData['vImage']?>">
           <!--                     <span>1</span> -->
                          </div>
-                         <span>Philipp Dallmann</span>
+                         <span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></span>
                          <ul>
                               <li><a href="javascript:$$.settings();">Kundendaten</a></li>
                               <li class="line"></li>
@@ -1336,6 +1358,7 @@ $invoicehtml = str_replace(array(
                               </div><!-- End of .content -->
                          </form>
                     </div><!-- End of #main -->
+                    <div style="display: none;" id="dialog_reply_ticket" title="Ticket beantworten"></div>
                </section>
 
                <!-- The footer -->
@@ -1465,6 +1488,30 @@ $invoicehtml = str_replace(array(
                     calculate_price();
                });
                </script>
+               <script>
+            $$.ready(function () {
+                $("#dialog_reply_ticket").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 1100,
+                    open: function () {
+                        $(this).parent().css('overflow', 'visible');
+                        $$.utils.forms.resize()
+                    }
+                }).find('button.submit').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    if ($el.validate().form()) {
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                }).end().find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                    ;
+                });
+            });
+        </script>
                <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
                   chromium.org/developers/how-tos/chrome-frame-getting-started -->
                <!--[if lt IE 7 ]>

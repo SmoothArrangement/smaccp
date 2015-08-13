@@ -104,7 +104,7 @@
 				<button class="grey cancel">abbrechen</button>
 			</div>
 			<div class="right">
-				<input type="submit" value="Antworten" name=send />
+				<input type="submit" value="Antworten" name="reply_ticket" />
 			</div>
 		</div><!-- End of .actions -->
 	</fieldset><!-- End of fieldset -->

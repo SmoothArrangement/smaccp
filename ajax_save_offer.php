@@ -210,7 +210,7 @@
                                         <h3>'.$users['vCustomerNumber'].'</h3>
                                    </div>
                                    <div class="avatar">
-                                        <img src="img/elements/profile/avatar.png" />
+                                        <img src="img/elements/profile/'.$users['vImage'].'" />
                                         <a href="javascript:void(0);">Ändern</a>
                                    </div>
                                    <ul class="info">
@@ -418,6 +418,7 @@
                 
                 $headers .= 'From: CCP <'.$template['vSender'].'>' . "\r\n";
                 $sub = $template['vSubject'];
+                $sub = str_replace("{zeitstempel}", date('d.m.Y').' um '.date('H.i').' Uhr ', $sub);
                 mail($cust_info['vEmail'], $sub, $html, $headers);
                 
                echo 'Ein neues Passwort wurde an die E-Mail Adresse gesendet.';

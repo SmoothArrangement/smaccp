@@ -5,129 +5,14 @@ include 'header.php';
 if (!isset($_SESSION['uid']) || $_SESSION['uid'] == "") {
     echo "<script type='text/javascript'>window.top.location='login.php';</script>";
 }
-if((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")){
-		header("location:index.php");
-	}
-	$id = $_SESSION['uid'];
-	$query = "SELECT * FROM user_mst WHERE iId='".$id."'" ;
-	$userData = mysql_query($query);
-	$userData = mysql_fetch_assoc($userData);
-if (isset($_REQUEST['send']) && $_REQUEST['send'] != "") {
-    $tid = $_REQUEST['tid'];
-    $ans = $_REQUEST['antwort'];
-    $status = $_REQUEST['status'];
-    if ($ans != "") {
-        $file = "";
-        if (isset($_FILES["f6_file"]["name"]) && $_FILES["f6_file"]["name"] != "") {
-            $datep = new DateTime();
-            $file = $datep->getTimestamp();
-            $arr = explode(".", $_FILES["f6_file"]["name"]);
-            $file = $file . "_" . $arr[0] . "." . end($arr);
-            move_uploaded_file($_FILES["f6_file"]["tmp_name"], "tickuploadfile/" . $file);
-        }
-        $date = date("Y-m-d H:i:s");
-        $tinfo = "SELECT * FROM ticket_mst WHERE iId='" . $tid . "'";
-        $tinforesult = mysql_query($tinfo);
-        $tinforow = mysql_fetch_assoc($tinforesult);
-        $to = $tinforow['iReceiverId'];
-        $subject = $tinforow['vSubject'];
-        $description = $_REQUEST['anliegen'];
-        $description = $_SESSION['uname'] . " schrieb am " . date("d.m.Y") . " um " . date("H:i") . " Uhr : " . $ans . "<hr>" . $description;
-        $description = str_replace("_____________________________________________________________", "<hr>", $description);
-        $etickstatus = $tinforow['vStatus'];
-
-        if ($to == $_SESSION['uid']) {
-            $to = $tinforow['iSenderId'];
-        }
-        $ruser = "SELECT * FROM user_mst WHERE iId='" . $to . "'";
-        $rresult = mysql_query($ruser);
-        $rrow = mysql_fetch_assoc($rresult);
-        $email = $rrow['vEmail'];
-        $fname = $rrow['vFname'];
-        $lname = $rrow['vLname'];
-        $_SESSION['sucess'] = "Deine Antwort wurde erfolgriech an " . $fname . " " . $lname . " gesendet";
-
-        if ($status != $etickstatus) {
-            $seltamplate = "SELECT * FROM email_template WHERE iId='4'";
-            $temresult = mysql_query($seltamplate);
-            $template = mysql_fetch_assoc($temresult);
-            $msg = $template['tMessage'];
-            $msg = str_replace("{benutzername}", $fname . " " . $lname, $msg);
-            $msg = str_replace("{absender}", $_SESSION['uname'], $msg);
-            $msg = str_replace("{tickettext}", $description, $msg);
-            if ($etickstatus == "Open") {
-                $_SESSION['sucess'] = "Das Ticket wurde geschlossen";
-                $msg = str_replace("{ticketstatus}", "Close", $msg);
-            } else {
-                $msg = str_replace("{ticketstatus}", "Open", $msg);
-            }
-            $msg = str_replace("{zeitstempel}", date('d.m.Y H.i.s'), $msg);
-            $msg = str_replace("{ticketlogin}",'<a href="http://ccp.smootharrangement.de/">http://ccp.smootharrangement.de</a>',$msg);
-            $html = '<html lang="en" dir="ltr" style="border: 0 none;font: inherit;margin: 0;padding: 0;vertical-align: baseline;">
-                                 <head>
-                                      <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
-                                      <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-                                      <meta content="width=device-width" name="viewport">
-                                      
-                                 </head>
-                                 <body style="background: #FFFFFF;color: #333333;font-family: Helvetica,Arial,sans-serif;font-size: 14px;line-height: 1.5em;margin: 0;padding: 40px 0;">
-                                        ' . $msg . '    
-                                 </body>
-                            </html>';
-            $headers = 'MIME-Version: 1.0' . "\r\n";
-            $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-            // Additional headers
-
-            $headers .= 'From: Ticket System <' . $template['vSender'] . '>' . "\r\n";
-
-            $sub = $template['vSubject'];
-            $sub = str_replace("{absender}", $_SESSION['uname'], $sub);
-            $sub = str_replace("{ticketbeschreibung}", $subject, $sub);
-            mail($email, $sub, $html, $headers);
-        }
-        $status = mysql_real_escape_string($status);
-        $date = mysql_real_escape_string($date);
-        $tid = mysql_real_escape_string($tid);
-        $tickupdate = "UPDATE ticket_mst SET vStatus='" . $status . "',dEditDate='" . $date . "' WHERE iId='" . $tid . "'";
-        mysql_query($tickupdate);
-        $ans = mysql_real_escape_string($ans);
-        $file = mysql_real_escape_string($file);
-        $insquery = "INSERT INTO tick_ans (iTickId,vAnswer,iUserId,vFile) VALUES ('" . $tid . "','" . $ans . "','" . $_SESSION['uid'] . "','" . $file . "')";
-        mysql_query($insquery);
-
-        $seltamplate = "SELECT * FROM email_template WHERE iId='3'";
-        $temresult = mysql_query($seltamplate);
-        $template = mysql_fetch_assoc($temresult);
-        $msg = $template['tMessage'];
-        $msg = str_replace("{benutzername}", $fname . " " . $lname, $msg);
-        $msg = str_replace("{absender}", $_SESSION['uname'], $msg);
-        $msg = str_replace("{tickettext}", $description, $msg);
-        $msg = str_replace("{zeitstempel}", date('d.m.Y H.i.s'), $msg);
-        $msg = str_replace("{ticketlogin}",'<a href="http://ccp.smootharrangement.de/">http://ccp.smootharrangement.de</a>',$msg);
-        $html = '<html lang="en" dir="ltr" style="border: 0 none;font: inherit;margin: 0;padding: 0;vertical-align: baseline;">
-                             <head>
-                                  <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
-                                  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-                                  <meta content="width=device-width" name="viewport">
-                                  
-                             </head>
-                             <body style="background: #FFFFFF;color: #333333;font-family: Helvetica,Arial,sans-serif;font-size: 14px;line-height: 1.5em;margin: 0;padding: 40px 0;">
-                                    ' . $msg . '    
-                             </body>
-                        </html>';
-        $headers = 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-        // Additional headers
-
-        $headers .= 'From: Ticket System <' . $template['vSender'] . '>' . "\r\n";
-
-        $sub = $template['vSubject'];
-        $sub = str_replace("{absender}", $_SESSION['uname'], $sub);
-        $sub = str_replace("{ticketbeschreibung}", $subject, $sub);
-        mail($email, $sub, $html, $headers);
-    }
-    echo "<script type='text/javascript'>window.top.location='offenetickets.php';</script>";
+if ((!isset($_SESSION['uid']) && $_SESSION['uid'] == "") && (!isset($_SESSION['id']) && $_SESSION['id'] == "" && !isset($_SESSION['uid']) && $_SESSION['uid'] == "")) {
+    header("location:index.php");
 }
+$id = $_SESSION['uid'];
+$query = "SELECT * FROM user_mst WHERE iId='" . $id . "'";
+$userData = mysql_query($query);
+$userData = mysql_fetch_assoc($userData);
+
 $select = "SELECT tm.*,um1.vFname as sendfname,um1.vLname as sendlname,um2.vFname as recfname,um2.vLname as reclname FROM ticket_mst tm
                LEFT JOIN user_mst um1 ON tm.iSenderId=um1.iId
                LEFT JOIN user_mst um2 ON tm.iReceiverId=um2.iId WHERE tm.iReceiverId='" . $_SESSION['uid'] . "' OR tm.iSenderId='" . $_SESSION['uid'] . "' ORDER BY tCreateDate DESC";
@@ -192,12 +77,6 @@ while ($row = mysql_fetch_assoc($result)) {
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
         <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
 
-
-
-
-
-
-
         <!-- The Styles -->
         <!-- ---------- -->
 
@@ -239,12 +118,6 @@ while ($row = mysql_fetch_assoc($result)) {
 
         <!-- Bad IE Styles -->
         <link rel="stylesheet" href="css/ie-fixes.css">
-
-
-
-
-
-
 
         <!-- The Scripts -->
         <!-- ----------- -->
@@ -572,7 +445,13 @@ while ($row = mysql_fetch_assoc($result)) {
                 });
 
                 $(".open-message-dialog").click(function () {
-                    $("#dialog_message").dialog("open");
+                    /*$("#dialog_message").dialog("open");
+                     return false;*/
+                    var id = $(this).attr('id');
+                    $.post("tickets_reply.php", {tid: id}).done(function (data) {
+                        $("#dialog_reply_ticket").html(data);
+                        $("#dialog_reply_ticket").dialog("open");
+                    });
                     return false;
                 });
             });
@@ -602,10 +481,10 @@ while ($row = mysql_fetch_assoc($result)) {
                 <div class="right">
                     <ul>
 
-                        <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span>Philipp Dallmann</a></li>
+                        <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></a></li>
 
                         <li>
-                            <a href="#"><span>1</span>Tickets</a>
+                            <a href="#"><span><?php echo $open; ?></span>Tickets</a>
 
                             <!-- Mail popup -->
                             <div class="popup">
@@ -613,38 +492,13 @@ while ($row = mysql_fetch_assoc($result)) {
 
                                 <!-- Button bar -->
                                 <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
-                                <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
+                                <a class="button flat right" href="neuesticket.php">Neues Ticket</a>
 
                                 <!-- The mail content -->
-                                <div class="content mail">
-                                    <ul>
-
-                                        <li>
-                                            <div class="avatar">
-                                                <img src="img/elements/mail/avatar.png" height=40 width=40/>
-                                            </div>
-                                            <div class="info">
-                                                <strong>Manuela Raab</strong>
-                                                <span>dringend</span>
-                                                <small>01.07.2015 09:32</small>
-                                            </div>
-                                            <div class="text">
-                                                <p>Hallo Smooth Arrangement</p>
-                                                <p>Ich habe ein Problem mit meiner Homepage</p>
-                                                <p>M.Raab</p>
-                                                <div class="actions">
-                                                    <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                    <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
-                                                </div>
-                                            </div>
-                                        </li>
-
-
-
-
-
-                                    </ul>
-                                </div><!-- End of .contents -->
+                                <?php
+                                   include('headpopup.php');
+                                ?>
+                                <!-- End of .contents -->
 
                             </div><!-- End of .popup -->
                         </li><!-- End of li -->
@@ -701,10 +555,10 @@ while ($row = mysql_fetch_assoc($result)) {
             <section class="toolbar">
                 <div class="user">
                     <div class="avatar">
-                        <img src="img/layout/content/toolbar/user/avatar.png">
+                        <img src="img/elements/profile/<?=$userData['vImage']?>">
     <!--                     <span>1</span> -->
                     </div>
-                    <span>Philipp Dallmann</span>
+                    <span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></span>
                     <ul>
                         <li><a href="javascript:$$.settings();">Kundendaten</a></li>
                         <li class="line"></li>
@@ -719,100 +573,100 @@ while ($row = mysql_fetch_assoc($result)) {
 
             <!-- The sidebar -->
             <?php if ($userData['vUserType'] == 1) { ?>
-            <aside>
-                <div class="top">
+                <aside>
+                    <div class="top">
 
 
-                    <!-- Navigation -->
-                    <nav><ul class="collapsible accordion">
+                        <!-- Navigation -->
+                        <nav><ul class="collapsible accordion">
 
-                            <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
+                                <li><a href="ccp.php"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height=16 width=16>Übersicht</a></li>
 
-                            <li>
-                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
-$sql = "SELECT * FROM `user_mst` ";
-$invoice = mysql_query($sql);
-echo mysql_num_rows($invoice) - 1;
-?></span></a>
-                                <ul>
-                                    <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
-                                    <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
-                                </ul>
-                            </li>
+                                <li>
+                                    <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/users.png" alt="" height=16 width=16>Kunden<span class="badge"><?php
+                                            $sql = "SELECT * FROM `user_mst` ";
+                                            $invoice = mysql_query($sql);
+                                            echo mysql_num_rows($invoice) - 1;
+                                            ?></span></a>
+                                    <ul>
+                                        <li><a href="kunden.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user-share.png" alt="" height=16 width=16></span>Kundenübersicht</a></li>
+                                        <li><a href="neuerkunde.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/user--plus.png" alt="" height=16 width=16></span>Neuer Kunde</a></li>
+                                    </ul>
+                                </li>
 
-                            <li>
-                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
-$sql = "SELECT * FROM `invoice_mst` ";
-$invoice = mysql_query($sql);
-echo mysql_num_rows($invoice);
-?>
-                                    </span></a>
-                                <ul>
-                                    <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
-                                    <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
-                                </ul>
-                            </li>
+                                <li>
+                                    <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-invoice.png" alt="" height=16 width=16>Rechnungen<span class="badge"><?php
+                                            $sql = "SELECT * FROM `invoice_mst` ";
+                                            $invoice = mysql_query($sql);
+                                            echo mysql_num_rows($invoice);
+                                            ?>
+                                        </span></a>
+                                    <ul>
+                                        <li><a href="rechnungen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document-search-result.png" alt="" height=16 width=16></span>Alle Rechnungen</a></li>
+                                        <li><a href="neuerechnung.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/document--plus.png" alt="" height=16 width=16></span>Neue Rechnung</a></li>
+                                    </ul>
+                                </li>
 
-                            <li>
-                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
-<?php
-$sql = "SELECT * FROM `offer_mst` ";
-$invoice = mysql_query($sql);
-echo mysql_num_rows($invoice);
-?></span></a>
-                                <ul>
-                                    <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
-                                    <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
-                                </ul>
-                            </li>						
+                                <li>
+                                    <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/calculator.png" alt="" height=16 width=16>Angebote<span class="badge">
+                                            <?php
+                                            $sql = "SELECT * FROM `offer_mst` ";
+                                            $invoice = mysql_query($sql);
+                                            echo mysql_num_rows($invoice);
+                                            ?></span></a>
+                                    <ul>
+                                        <li><a href="angebote.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--pencil.png" alt="" height=16 width=16></span>Alle Angebote</a></li>
+                                        <li><a href="neuesangebot.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/calculator--plus.png" alt="" height=16 width=16></span>Neues Angebot</a></li>
+                                    </ul>
+                                </li>						
 
-                            <li>
-                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/gear.png" alt="" height=16 width=16>Einstellungen</span></a>
-                                <ul>
-                                    <li><a href="formate.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/table-draw.png" alt="" height=16 width=16></span>Formate</a></li>
-                                </ul>
-                            </li>
+                                <li>
+                                    <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/gear.png" alt="" height=16 width=16>Einstellungen</span></a>
+                                    <ul>
+                                        <li><a href="formate.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/table-draw.png" alt="" height=16 width=16></span>Formate</a></li>
+                                    </ul>
+                                </li>
 
-                            <li>
-                                <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/blue-document-office-text.png" alt="" height=16 width=16>Vorlagen</a>
-                                <ul>
-                                    <li><a href="rechnungsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-pdf-text.png" alt="" height=16 width=16></span>Rechnungsvorlage</a></li>
-                                    <li ><a href="angebotsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-excel-table.png" alt="" height=16 width=16></span>Angebotsvorlage</a></li>
-                                    <li><a href="emailvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-send-receive.png" alt="" height=16 width=16></span>E-Mail Vorlagen</a></li>
-                                </ul>
-                            </li>
+                                <li>
+                                    <a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/blue-document-office-text.png" alt="" height=16 width=16>Vorlagen</a>
+                                    <ul>
+                                        <li><a href="rechnungsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-pdf-text.png" alt="" height=16 width=16></span>Rechnungsvorlage</a></li>
+                                        <li ><a href="angebotsvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/blue-document-excel-table.png" alt="" height=16 width=16></span>Angebotsvorlage</a></li>
+                                        <li><a href="emailvorlagen.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-send-receive.png" alt="" height=16 width=16></span>E-Mail Vorlagen</a></li>
+                                    </ul>
+                                </li>
 
-                            <li class="current">
-                                <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/question.png" alt="" height=16 width=16>Ticketsystem</a>
-                                <ul>
-                                    <li><a href="alletickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mails-stack.png" alt="" height=16 width=16></span>Alle Tickets</a></li>
-                                    <li><a href="neuesticket.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail--plus.png" alt="" height=16 width=16></span>Neues Ticket</a></li>
-                                    <li class="current"><a href="offenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-open.png" alt="" height=16 width=16></span>Offene Tickets</a></li>
-                                    <li><a href="geschlossenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail.png" alt="" height=16 width=16></span>Geschlossene Tickets</a></li>
-                                </ul>
-                            </li>
+                                <li class="current">
+                                    <a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/question.png" alt="" height=16 width=16>Ticketsystem</a>
+                                    <ul>
+                                        <li><a href="alletickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mails-stack.png" alt="" height=16 width=16></span>Alle Tickets</a></li>
+                                        <li><a href="neuesticket.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail--plus.png" alt="" height=16 width=16></span>Neues Ticket</a></li>
+                                        <li class="current"><a href="offenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail-open.png" alt="" height=16 width=16></span>Offene Tickets</a></li>
+                                        <li><a href="geschlossenetickets.php"><span class="icon"><img src="img/icons/packs/fugue/16x16/mail.png" alt="" height=16 width=16></span>Geschlossene Tickets</a></li>
+                                    </ul>
+                                </li>
 
-                        </ul></nav><!-- End of nav -->
+                            </ul></nav><!-- End of nav -->
 
-                </div><!-- End of .top -->
+                    </div><!-- End of .top -->
 
-                <div class="bottom sticky">
-                    <div class="divider"></div>
-                    <div class="buttons">
-                        <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
-                        <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
-                        <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
-                        <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
-                    </div>
-                    <div class="divider"></div>				
-                    <div class="progress">
-                        <div class="bar" data-title="Space" data-value="1285" data-max="5120" data-format="0,0 MB"></div>
-                        <div class="bar" data-title="Traffic" data-value="8.61" data-max="14" data-format="0.00 GB"></div>
-                        <div class="bar" data-title="Budget" data-value="20000" data-max="20000" data-format="$0,0"></div>
-                    </div>				
-                </div><!-- End of .bottom -->
+                    <div class="bottom sticky">
+                        <div class="divider"></div>
+                        <div class="buttons">
+                            <a href="/neuerkunde.php" class="button grey">Neuer Kunde</a>
+                            <a href="/neuerechnung.php" class="button grey">Neue Rechnung</a>
+                            <a href="/neuesangebot.php" class="button grey">Neues Angebot</a>
+                            <a href="/neuesticket.php" class="button grey">Neues Ticket</a>
+                        </div>
+                        <div class="divider"></div>				
+                        <div class="progress">
+                            <div class="bar" data-title="Space" data-value="1285" data-max="5120" data-format="0,0 MB"></div>
+                            <div class="bar" data-title="Traffic" data-value="8.61" data-max="14" data-format="0.00 GB"></div>
+                            <div class="bar" data-title="Budget" data-value="20000" data-max="20000" data-format="$0,0"></div>
+                        </div>				
+                    </div><!-- End of .bottom -->
 
-            </aside><!-- End of sidebar -->
+                </aside><!-- End of sidebar -->
             <?php } else if ($userData['vUserType'] == 2) {
                 ?>
 
@@ -858,10 +712,10 @@ echo mysql_num_rows($invoice);
                         <small>Geschlossene Tickets</small>
                     </li>
                     <?php if ($userData['vUserType'] == 1) { ?>
-                    <li>
-                        <strong><?= $overdue ?></strong>
-                        <small>Überfällige Tickets</small>
-                    </li>
+                        <li>
+                            <strong><?= $overdue ?></strong>
+                            <small>Überfällige Tickets</small>
+                        </li>
                     <?php } ?>
                 </ul><!-- End of ul.stats -->
 
@@ -929,17 +783,17 @@ echo mysql_num_rows($invoice);
                                                     <a href="tickets_reply.php"><span class="icon treply" id="<?= $data[$i]['iId'] ?>"><img src="img/icons/packs/fugue/16x16/arrow-return-180-left.png" alt="Ticket beantworten" title="Ticket beantworten" height=16 width=16></span></a>&nbsp;
                                                 </td>
                                             </tr>
-        <?php
-    }
-}
-?>								
+                                            <?php
+                                        }
+                                    }
+                                    ?>								
                                 </tbody>
                             </table>
                             <div id="Legende" style="float:right;">
                                 <p><b>Legende:</b></p>
                                 <p>
-                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="Ticket ansehen" title="Ticket ansehen" height=16 width=16></span> = Ticket ansehen&nbsp;
-                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/arrow-return-180-left.png" alt="Ticket beantworten" title="Ticket beantworten" height=16 width=16></span> = Ticket beantworten&nbsp;
+                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="Ticket ansehen" title="Ticket ansehen" height=16 width=16> = Ticket ansehen&nbsp;</span>
+                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/arrow-return-180-left.png" alt="Ticket beantworten" title="Ticket beantworten" height=16 width=16> = Ticket beantworten&nbsp;</span>
                                 </p>
                             </div>
                         </div><!-- End of .content -->
@@ -987,71 +841,79 @@ echo mysql_num_rows($invoice);
 
         </div><!-- End of #main -->
         <div style="display: none;" id="dialog_view_ticket" title="Ticket ansehen"></div>
-    <div style="display: none;" id="dialog_reply_ticket" title="Ticket beantworten"></div>
-    <script>
-		$$.ready(function() {
-		    $("#f6_file").live("change",function(){
+        <div style="display: none;" id="dialog_reply_ticket" title="Ticket beantworten"></div>
+        <script>
+            $$.ready(function () {
+                $("#f6_file").live("change", function () {
                     $(".customfile-feedback").html($(this).val());
                     var val = $(this).val().split(".");
-                    var val = val[val.length-1];
+                    var val = val[val.length - 1];
                     $(".customfile-feedback").attr('class', 'customfile-feedback');
                     $(".customfile-feedback").addClass("customfile-feedback-populated");
-                    $(".customfile-feedback").addClass("customfile-ext-"+val);
-                    $(".customfile-button").html("Change");  
-              });
-              $( "#dialog_view_ticket" ).dialog({
-                  autoOpen: false,
-                  modal: true,
-                  width: 1100,
-                  open: function(){ $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize() }
-              }).find('button.submit').click(function(){
-                  var $el = $(this).parents('.ui-dialog-content');
-                  if ($el.validate().form()) {
-                      $el.find('form')[0].reset();
-                      $el.dialog('close');
-                  }
-              }).end().find('button.cancel').click(function(){
-                  var $el = $(this).parents('.ui-dialog-content');
-                  $el.find('form')[0].reset();
-                  $el.dialog('close');;
-              });
-              
-              $( ".tview" ).live("click",function() {
-                  var id = $(this).attr('id');
-                  $.post( "tickets_view.php", { tid: id }).done(function( data ) {
-                         $( "#dialog_view_ticket" ).html(data);
-                         $( "#dialog_view_ticket" ).dialog( "open" );
-                  });
-                  return false;
-              });
-              
-              $( "#dialog_reply_ticket" ).dialog({
-                  autoOpen: false,
-                  modal: true,
-                  width: 1100,
-                  open: function(){ $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize() }
-              }).find('button.submit').click(function(){
-                  var $el = $(this).parents('.ui-dialog-content');
-                  if ($el.validate().form()) {
-                      $el.find('form')[0].reset();
-                      $el.dialog('close');
-                  }
-              }).end().find('button.cancel').click(function(){
-                  var $el = $(this).parents('.ui-dialog-content');
-                  $el.find('form')[0].reset();
-                  $el.dialog('close');;
-              });
-              
-              $( ".treply" ).live("click",function() {
-                  var id = $(this).attr('id');
-                  $.post( "tickets_reply.php", { tid: id }).done(function( data ) {
-                         $( "#dialog_reply_ticket" ).html(data);
-                         $( "#dialog_reply_ticket" ).dialog( "open" );
-                  });
-                  return false;
-              });
-          });
-    </script>
+                    $(".customfile-feedback").addClass("customfile-ext-" + val);
+                    $(".customfile-button").html("Change");
+                });
+                $("#dialog_view_ticket").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 1100,
+                    open: function () {
+                        $(this).parent().css('overflow', 'visible');
+                        $$.utils.forms.resize()
+                    }
+                }).find('button.submit').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    if ($el.validate().form()) {
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                }).end().find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                    ;
+                });
+
+                $(".tview").live("click", function () {
+                    var id = $(this).attr('id');
+                    $.post("tickets_view.php", {tid: id}).done(function (data) {
+                        $("#dialog_view_ticket").html(data);
+                        $("#dialog_view_ticket").dialog("open");
+                    });
+                    return false;
+                });
+
+                $("#dialog_reply_ticket").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 1100,
+                    open: function () {
+                        $(this).parent().css('overflow', 'visible');
+                        $$.utils.forms.resize()
+                    }
+                }).find('button.submit').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    if ($el.validate().form()) {
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                }).end().find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                    ;
+                });
+
+                $(".treply").live("click", function () {
+                    var id = $(this).attr('id');
+                    $.post("tickets_reply.php", {tid: id}).done(function (data) {
+                        $("#dialog_reply_ticket").html(data);
+                        $("#dialog_reply_ticket").dialog("open");
+                    });
+                    return false;
+                });
+            });
+        </script>
 
         <!-- The footer -->
         <footer class="container_12">

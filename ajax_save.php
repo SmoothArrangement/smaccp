@@ -210,8 +210,13 @@
                                         <h3>'.$users['vCustomerNumber'].'</h3>
                                    </div>
                                    <div class="avatar">
-                                        <img src="img/elements/profile/avatar.png" />
-                                        <a href="javascript:void(0);">Ändern</a>
+                                        <img class="uProfile_image" src="img/elements/profile/'.$users['vImage'].'" />
+                                        <a id="change_image" href="javascript:void(0);">Ändern</a>
+                                        <form action="" id="change_image_form" method="post" enctype="multipart/form-data" style="display:none;">
+                                             <input type="file" name="profile" id="profile" />
+                                             <input type="hidden" name="uid" id="uid" value="'.$users['iId'].'" />
+                                             <input type="hidden" name="type" id="type" value="change_customer_image" />
+                                        </form>
                                    </div>
                                    <ul class="info">
                                         <li>&nbsp;</li>
@@ -418,6 +423,7 @@
                 
                 $headers .= 'From: CCP <'.$template['vSender'].'>' . "\r\n";
                 $sub = $template['vSubject'];
+                $sub = str_replace("{zeitstempel}", date('d.m.Y').' um '.date('H.i').' Uhr ', $sub);
                 mail($cust_info['vEmail'], $sub, $html, $headers);
                 
                echo 'Ein neues Passwort wurde an die E-Mail Adresse gesendet.';
@@ -448,7 +454,7 @@
                mysql_query($sql);
                echo "YES"; exit;
           }
-     }else if( $type == 'invoice_template_v'){
+     } else if( $type == 'invoice_template_v'){
           $html = $_REQUEST['html_tag'];
           $dynamic = $_REQUEST['dynamic_tag'];
           $css = $_REQUEST['css_tag'];
@@ -459,8 +465,7 @@
                mysql_query($sql);
                echo "YES"; exit;
           }
-     }
-     else if( $type == 'invoice_template_a'){
+     } else if( $type == 'invoice_template_a'){
           $html = $_REQUEST['html_tag'];
           $dynamic = $_REQUEST['dynamic_tag'];
           $css = $_REQUEST['css_tag'];
@@ -471,7 +476,32 @@
                mysql_query($sql);
                echo "YES"; exit;
           }
-     }else {
+     } else if( $type == 'change_customer_image'){
+          if (!isset($_REQUEST['uid']) || $_REQUEST['uid'] == ''){
+               echo "No"; exit;
+          } else {
+               $uid = $_REQUEST['uid'];
+               $source_file=basename($_FILES['profile']['name']);
+               $array = explode(".",basename($source_file));	
+               $filename= $array[0];	
+               $extention = $array[1];
+               if($extention == 'jpg' || $extention == 'png' || $extention == 'gif' || $extention == 'jpeg' || $extention == 'JPG' || $extention == 'PNG' || $extention == 'GIF' || $extention == 'JPEG'){
+                    if($_FILES['profile']['size'] <= 153600){
+                         $filename = $filename.'_'.time().".".$extention;
+                         $source_file= 'img/elements/profile/'.$filename; 	
+                         move_uploaded_file($_FILES['profile']['tmp_name'], $source_file);
+                         $sql = "UPDATE user_mst SET vImage='".$filename."' WHERE iId='".$uid."';";
+                         mysql_query($sql);
+                         echo $filename;
+                         exit;
+                    } else {
+                         echo "No"; exit;
+                    }
+               } else {
+                    echo "No"; exit;
+               }
+          }
+     } else {
           echo "Invalid Access"; exit;
      }
 ?>

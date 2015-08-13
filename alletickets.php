@@ -19,125 +19,9 @@ if (isset($_REQUEST['did']) && $_REQUEST['did'] != "") {
     $_SESSION['sucess'] = "Der Eintrag wurde erfolgreich gelöscht";
     echo "<script type='text/javascript'>window.top.location='alletickets.php';</script>";
 }
-if (isset($_REQUEST['send']) && $_REQUEST['send'] != "") {
-    $tid = $_REQUEST['tid'];
-    $ans = $_REQUEST['antwort'];
-    $status = $_REQUEST['status'];
-    if ($ans != "") {
-        $file = "";
-        if (isset($_FILES["f6_file"]["name"]) && $_FILES["f6_file"]["name"] != "") {
-            $datep = new DateTime();
-            $file = $datep->getTimestamp();
-            $arr = explode(".", $_FILES["f6_file"]["name"]);
-            $file = $file . "_" . $arr[0] . "." . end($arr);
-            move_uploaded_file($_FILES["f6_file"]["tmp_name"], "tickuploadfile/" . $file);
-        }
-        $date = date("Y-m-d H:i:s");
-        $tinfo = "SELECT * FROM ticket_mst WHERE iId='" . $tid . "'";
-        $tinforesult = mysql_query($tinfo);
-        $tinforow = mysql_fetch_assoc($tinforesult);
-        $to = $tinforow['iReceiverId'];
-        $subject = $tinforow['vSubject'];
-        $description = $_REQUEST['anliegen'];
-        $description = $_SESSION['uname'] . " schrieb am " . date("d.m.Y") . " um " . date("H:i") . " Uhr : " . $ans . "<hr>" . $description;
-        $description = str_replace("_____________________________________________________________", "<hr>", $description);
-        $etickstatus = $tinforow['vStatus'];
-
-        if ($to == $_SESSION['uid']) {
-            $to = $tinforow['iSenderId'];
-        }
-        $ruser = "SELECT * FROM user_mst WHERE iId='" . $to . "'";
-        $rresult = mysql_query($ruser);
-        $rrow = mysql_fetch_assoc($rresult);
-        $email = $rrow['vEmail'];
-        $fname = $rrow['vFname'];
-        $lname = $rrow['vLname'];
-        $_SESSION['sucess'] = "Deine Antwort wurde erfolgreich an " . $fname . " " . $lname . " gesendet";
-
-        if ($status != $etickstatus) {
-            $seltamplate = "SELECT * FROM email_template WHERE iId='4'";
-            $temresult = mysql_query($seltamplate);
-            $template = mysql_fetch_assoc($temresult);
-            $msg = $template['tMessage'];
-            $msg = str_replace("{benutzername}", $fname . " " . $lname, $msg);
-            $msg = str_replace("{absender}", $_SESSION['uname'], $msg);
-            $msg = str_replace("{tickettext}", $description, $msg);
-            if ($etickstatus == "Open") {
-                $_SESSION['sucess'] = "Das Ticket wurde geschlossen";
-                $msg = str_replace("{ticketstatus}", "Close", $msg);
-            } else {
-                $msg = str_replace("{ticketstatus}", "Open", $msg);
-            }
-            $msg = str_replace("{zeitstempel}", date('d.m.Y H.i.s'), $msg);
-            $msg = str_replace("{ticketlogin}",'<a href="http://ccp.smootharrangement.de/">http://ccp.smootharrangement.de</a>',$msg);
-            $html = '<html lang="en" dir="ltr" style="border: 0 none;font: inherit;margin: 0;padding: 0;vertical-align: baseline;">
-                                 <head>
-                                      <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
-                                      <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-                                      <meta content="width=device-width" name="viewport">
-                                      
-                                 </head>
-                                 <body style="background: #FFFFFF;color: #333333;font-family: Helvetica,Arial,sans-serif;font-size: 14px;line-height: 1.5em;margin: 0;padding: 40px 0;">
-                                        ' . $msg . '    
-                                 </body>
-                            </html>';
-            $headers = 'MIME-Version: 1.0' . "\r\n";
-            $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-            // Additional headers
-
-            $headers .= 'From: Ticket System <' . $template['vSender'] . '>' . "\r\n";
-
-            $sub = $template['vSubject'];
-            $sub = str_replace("{absender}", $_SESSION['uname'], $sub);
-            $sub = str_replace("{ticketbeschreibung}", $subject, $sub);
-            mail($email, $sub, $html, $headers);
-        }
-        $status = mysql_real_escape_string($status);
-        $date = mysql_real_escape_string($date);
-        $tid = mysql_real_escape_string($tid);
-        $tickupdate = "UPDATE ticket_mst SET vStatus='" . $status . "',dEditDate='" . $date . "' WHERE iId='" . $tid . "'";
-        mysql_query($tickupdate);
-        $ans = mysql_real_escape_string($ans);
-        $file = mysql_real_escape_string($file);
-        $insquery = "INSERT INTO tick_ans (iTickId,vAnswer,iUserId,vFile) VALUES ('" . $tid . "','" . $ans . "','" . $_SESSION['uid'] . "','" . $file . "')";
-        mysql_query($insquery);
-
-        $seltamplate = "SELECT * FROM email_template WHERE iId='3'";
-        $temresult = mysql_query($seltamplate);
-        $template = mysql_fetch_assoc($temresult);
-        $msg = $template['tMessage'];
-        $msg = str_replace("{benutzername}", $fname . " " . $lname, $msg);
-        $msg = str_replace("{absender}", $_SESSION['uname'], $msg);
-        $msg = str_replace("{tickettext}", $description, $msg);
-        $msg = str_replace("{zeitstempel}", date('d.m.Y H.i.s'), $msg);
-        $msg = str_replace("{ticketlogin}",'<a href="http://ccp.smootharrangement.de/">http://ccp.smootharrangement.de</a>',$msg);
-        $html = '<html lang="en" dir="ltr" style="border: 0 none;font: inherit;margin: 0;padding: 0;vertical-align: baseline;">
-                             <head>
-                                  <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
-                                  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-                                  <meta content="width=device-width" name="viewport">
-                                  
-                             </head>
-                             <body style="background: #FFFFFF;color: #333333;font-family: Helvetica,Arial,sans-serif;font-size: 14px;line-height: 1.5em;margin: 0;padding: 40px 0;">
-                                    ' . $msg . '    
-                             </body>
-                        </html>';
-        $headers = 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-        // Additional headers
-
-        $headers .= 'From: Ticket System <' . $template['vSender'] . '>' . "\r\n";
-
-        $sub = $template['vSubject'];
-        $sub = str_replace("{absender}", $_SESSION['uname'], $sub);
-        $sub = str_replace("{ticketbeschreibung}", $subject, $sub);
-        mail($email, $sub, $html, $headers);
-    }
-    echo "<script type='text/javascript'>window.top.location='alletickets.php';</script>";
-}
 $select = "SELECT tm.*,um1.vFname as sendfname,um1.vLname as sendlname,um2.vFname as recfname,um2.vLname as reclname FROM ticket_mst tm
                LEFT JOIN user_mst um1 ON tm.iSenderId=um1.iId
-               LEFT JOIN user_mst um2 ON tm.iReceiverId=um2.iId ORDER BY tCreateDate DESC";
+               LEFT JOIN user_mst um2 ON tm.iReceiverId=um2.iId WHERE tm.iReceiverId='" . $_SESSION['uid'] . "' OR tm.iSenderId='" . $_SESSION['uid'] . "' ORDER BY tCreateDate DESC";
 $result = mysql_query($select);
 $new = 0;
 $close = 0;
@@ -165,6 +49,10 @@ while ($row = mysql_fetch_assoc($result)) {
 }
 //echo "<pre>";
 //print_r($data);exit;
+$id = $_SESSION['uid'];
+$query = "SELECT * FROM user_mst WHERE iId='" . $id . "'";
+$userData = mysql_query($query);
+$userData = mysql_fetch_assoc($userData);
 ?>
 ﻿<!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
@@ -198,12 +86,6 @@ while ($row = mysql_fetch_assoc($result)) {
         <link rel="shortcut icon" href="favicon.ico" />
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
         <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
-
-
-
-
-
-
 
         <!-- The Styles -->
         <!-- ---------- -->
@@ -246,12 +128,6 @@ while ($row = mysql_fetch_assoc($result)) {
 
         <!-- Bad IE Styles -->
         <link rel="stylesheet" href="css/ie-fixes.css">
-
-
-
-
-
-
 
         <!-- The Scripts -->
         <!-- ----------- -->
@@ -299,7 +175,6 @@ while ($row = mysql_fetch_assoc($result)) {
         <!--[if lt IE 9]><script src="js/mylibs/polyfills/selectivizr.js"></script><![endif]-->
         <!--[if lt IE 10]><script src="js/mylibs/polyfills/excanvas.js"></script><![endif]-->
         <!--[if lt IE 10]><script src="js/mylibs/polyfills/classlist.js"></script><![endif]-->
-
 
         <!-- scripts concatenated and minified via build script -->
 
@@ -580,7 +455,11 @@ while ($row = mysql_fetch_assoc($result)) {
                 });
 
                 $(".open-message-dialog").click(function () {
-                    $("#dialog_message").dialog("open");
+                    var id = $(this).attr('id');
+                    $.post("tickets_reply.php", {tid: id}).done(function (data) {
+                        $("#dialog_reply_ticket").html(data);
+                        $("#dialog_reply_ticket").dialog("open");
+                    });
                     return false;
                 });
             });
@@ -610,10 +489,10 @@ while ($row = mysql_fetch_assoc($result)) {
                 <div class="right">
                     <ul>
 
-                        <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span>Philipp Dallmann</a></li>
+                        <li><a href="kundendaten.php"><span class="icon i14_admin-user-2"></span><?php echo $userData['vFname'] . ' ' . $userData['vLname']; ?></a></li>
 
                         <li>
-                            <a href="#"><span>1</span>Tickets</a>
+                            <a href="#"><span><?php echo $open; ?></span>Tickets</a>
 
                             <!-- Mail popup -->
                             <div class="popup">
@@ -621,38 +500,13 @@ while ($row = mysql_fetch_assoc($result)) {
 
                                 <!-- Button bar -->
                                 <a class="button flat left grey" onClick="$(this).parent().fadeToggle($$.config.fxSpeed)">X</a>
-                                <a class="button flat right" href="tables_dynamic.php">Neues Ticket</a>
+                                <a class="button flat right" href="neuesticket.php">Neues Ticket</a>
 
                                 <!-- The mail content -->
-                                <div class="content mail">
-                                    <ul>
-
-                                        <li>
-                                            <div class="avatar">
-                                                <img src="img/elements/mail/avatar.png" height=40 width=40/>
-                                            </div>
-                                            <div class="info">
-                                                <strong>Manuela Raab</strong>
-                                                <span>dringend</span>
-                                                <small>01.07.2015 09:32</small>
-                                            </div>
-                                            <div class="text">
-                                                <p>Hallo Smooth Arrangement</p>
-                                                <p>Ich habe ein Problem mit meiner Homepage</p>
-                                                <p>M.Raab</p>
-                                                <div class="actions">
-                                                    <a href="javascript:void(0);" class="left open-message-dialog">Antworten</a>
-                                                    <a onClick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">schließen</a>
-                                                </div>
-                                            </div>
-                                        </li>
-
-
-
-
-
-                                    </ul>
-                                </div><!-- End of .contents -->
+                                <?php
+                                   include('headpopup.php');
+                                ?>
+                                <!-- End of .contents -->
 
                             </div><!-- End of .popup -->
                         </li><!-- End of li -->
@@ -709,10 +563,10 @@ while ($row = mysql_fetch_assoc($result)) {
             <section class="toolbar">
                 <div class="user">
                     <div class="avatar">
-                        <img src="img/layout/content/toolbar/user/avatar.png">
+                        <img src="img/elements/profile/<?=$userData['vImage']?>">
     <!--                     <span>1</span> -->
                     </div>
-                    <span>Philipp Dallmann</span>
+                    <span><?php echo $userData['vFname'].' '.$userData['vLname'];?></span>
                     <ul>
                         <li><a href="javascript:$$.settings();">Kundendaten</a></li>
                         <li class="line"></li>
@@ -837,10 +691,10 @@ while ($row = mysql_fetch_assoc($result)) {
                         <small>Geschlossene Tickets</small>
                     </li>
                     <?php if ($userData['vUserType'] == 1) { ?>
-                    <li>
-                        <strong><?= $overdue ?></strong>
-                        <small>Überfällige Tickets</small>
-                    </li>
+                        <li>
+                            <strong><?= $overdue ?></strong>
+                            <small>Überfällige Tickets</small>
+                        </li>
                     <?php } ?>
                 </ul><!-- End of ul.stats -->
                 <!-- Here goes the content. -->
@@ -910,13 +764,13 @@ while ($row = mysql_fetch_assoc($result)) {
                                     ?>
                                 </tbody>
                             </table>
-                            <div id="Legende" style="float:right;">
+                            <div id="Legende" style="float: right;">
                                 <p><b>Legende:</b></p>
                                 <p>
-                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="Ticket ansehen" title="Ticket ansehen" height=16 width=16></span> = Ticket ansehen&nbsp;
-                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/arrow-return-180-left.png" alt="Ticket beantworten" title="Ticket beantworten" height=16 width=16></span> = Ticket beantworten&nbsp;
-                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="Ticket bearbeiten" title="Ticket bearbeiten" height=16 width=16></span> = Ticket bearbeiten&nbsp;
-                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/cross-circle-frame.png" alt="Ticket l&ouml;schen" title="Ticket l&ouml;schen" height=16 width=16></span> = Ticket l&ouml;schen&nbsp;
+                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/eye.png" alt="Ticket ansehen" title="Ticket ansehen" height=16 width=16> = Ticket ansehen&nbsp;</span>
+                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/arrow-return-180-left.png" alt="Ticket beantworten" title="Ticket beantworten" height=16 width=16> = Ticket beantworten&nbsp;</span>
+                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/pencil.png" alt="Ticket bearbeiten" title="Ticket bearbeiten" height=16 width=16> = Ticket bearbeiten&nbsp;</span>
+                                    <span class="icon"><img src="img/icons/packs/fugue/16x16/cross-circle-frame.png" alt="Ticket l&ouml;schen" title="Ticket l&ouml;schen" height=16 width=16> = Ticket l&ouml;schen&nbsp;</span>
                                 </p>
                             </div>
                         </div><!-- End of .content -->
